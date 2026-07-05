@@ -1,3 +1,5 @@
+<img src="custom_components/intex_sx2100/brand/icon.png" width="96" align="right" alt="Intex SX2100 icon" />
+
 # Intex SX2100 Pool Pump for Home Assistant
 
 [![GitHub Release](https://img.shields.io/github/v/release/thomasgregg/intex-ha)](https://github.com/thomasgregg/intex-ha/releases)
@@ -205,6 +207,8 @@ actions:
 ```
 
 ## Dashboard card
+
+<img src="images/dashboard-card.png" width="360" alt="Pool pump dashboard card" />
 
 A ready-made card lives in
 [`examples/dashboard-card.yaml`](examples/dashboard-card.yaml) — paste it
