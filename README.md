@@ -32,17 +32,17 @@ Entities* if needed. (Installs older than 0.3.0 keep their original
 ### Repeating vs FP-mode slots
 
 The Intex app writes two kinds of entries into the same 7 slots, and each
-slot switch exposes which one it is via its `mode` attribute:
+slot switch exposes which one it is via its `mode` attribute
+(live-verified against the real pump's blob):
 
-- `repeating` — a normal timer (control byte 1): start time + duration +
-  week repeat mask.
-- `fp_one_time` — the app's **FP mode** (control byte 0): a dated, one-off
-  long filtration run of up to 48 h; the pump reports `FP_mode` while it
-  runs and returns to the normal cycle afterwards.
+- `repeating` — a timer with a week mask (`days` 255 = every day, else a
+  weekday bitmask).
+- `fp_one_time` — the app's **FP mode**: a dated one-off long filtration
+  run of up to 48 h (`days` 0, month/date set); the pump reports `FP_mode`
+  while it runs and returns to the normal cycle afterwards.
 
-Turning a slot switch **on** in HA makes it a repeating timer; FP entries
-show as "off" because their control byte is 0 — that matches the device's
-own behavior, not a bug.
+The slot switch mirrors the app's enable toggle (the `on` byte) for both
+kinds — it never changes the slot's mode or timing.
 
 Other observed DPs (106 bool, 110 numeric, 119 bool) are unknown and not
 exposed yet.

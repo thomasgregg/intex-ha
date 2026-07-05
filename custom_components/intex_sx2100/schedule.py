@@ -50,20 +50,26 @@ def encode_schedules(slots: list[dict[str, Any]]) -> str:
 
 
 def mode_of(slot: dict[str, Any]) -> str:
-    """``repeating`` for timed runs (control byte 1); ``fp_one_time`` for the
-    app's FP-mode long runs (control byte 0, dated entry, up to 48 h)."""
-    return "repeating" if slot.get("on") else "fp_one_time"
+    """``repeating`` when a week mask is set; ``fp_one_time`` for the app's
+    dated FP-mode entries (days == 0, month/date set, up to 48 h).
+
+    The ``on`` byte is the app's enable toggle, independent of the mode —
+    live-verified against the AGP SAND FILTER PUMP R1 blob 2026-07-05."""
+    return "repeating" if slot.get("days") else "fp_one_time"
 
 
 def summarize(slot: dict[str, Any]) -> str:
-    """One-liner like ``Daily 06:00 · 8h`` or ``07-04 09:00 · 48h · FP``."""
+    """One-liner like ``Daily 20:50 · 1h · off`` or ``07-04 09:00 · 48h · FP · off``."""
     h, m = int(slot.get("hour", 0)), int(slot.get("minute", 0))
     if slot.get("days") == DAYS_EVERY:
         when = f"Daily {h:02d}:{m:02d}"
+    elif slot.get("days"):
+        when = f"Weekly({int(slot['days']) & 0x7F:07b}) {h:02d}:{m:02d}"
     else:
         when = f"{int(slot.get('month', 0)):02d}-{int(slot.get('date', 0)):02d} {h:02d}:{m:02d}"
-    suffix = "" if slot.get("on") else " · FP"
-    return f"{when} · {int(slot.get('duration', 0))}h{suffix}"
+    fp = "" if slot.get("days") else " · FP"
+    state = "on" if slot.get("on") else "off"
+    return f"{when} · {int(slot.get('duration', 0))}h{fp} · {state}"
 
 
 def set_slot(

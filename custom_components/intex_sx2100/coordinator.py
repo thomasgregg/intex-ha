@@ -103,6 +103,7 @@ class ScheduleCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     ) -> None:
         """Update one slot with sensible defaults for previously-empty slots."""
         slots = (self.data or {}).get("slots") or schedule.decode_schedules(None)
+        was_empty = not (0 <= index < len(slots) and slots[index].get("active"))
         new = schedule.set_slot(
             slots,
             index,
@@ -114,12 +115,14 @@ class ScheduleCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             clear=clear,
         )
         rec = new[index]
-        if not clear and rec.get("active"):
-            # An empty slot being brought to life needs a repeat mask and a
-            # non-zero worktime, or the pump ignores it.
-            if not rec.get("days"):
+        if not clear and was_empty and rec.get("active"):
+            # A truly empty slot being brought to life needs a repeat mask and
+            # a non-zero worktime, or the pump ignores it. Existing entries are
+            # never touched: FP-mode slots legitimately have days == 0, and
+            # forcing a mask on them would turn a one-time run into a daily one.
+            if days is None and not rec.get("days"):
                 rec["days"] = schedule.DAYS_EVERY
-            if enabled and not rec.get("duration"):
+            if not rec.get("duration"):
                 rec["duration"] = 1
         await self.async_write_slots(new)
 
