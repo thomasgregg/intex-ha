@@ -36,11 +36,11 @@ set_schedule_slot:
           mode: box
     duration:
       name: Duration
-      description: Run time in hours (1-24).
+      description: Run time in hours (1-48; above 24 only for FP-mode one-time runs).
       selector:
         number:
           min: 1
-          max: 24
+          max: 48
           unit_of_measurement: h
           mode: box
     days:

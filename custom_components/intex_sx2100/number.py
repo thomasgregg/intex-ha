@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.components.number import NumberEntity, NumberMode
-from homeassistant.const import UnitOfTime
+from homeassistant.const import EntityCategory, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -37,8 +37,10 @@ class SlotDuration(CoordinatorEntity[ScheduleCoordinator], NumberEntity):
 
     _attr_has_entity_name = True
     _attr_icon = "mdi:timer-sand"
+    _attr_entity_category = EntityCategory.CONFIG
     _attr_native_min_value = 0
-    _attr_native_max_value = 24
+    # FP-mode one-time runs go up to 48 h (verified in the Intex app).
+    _attr_native_max_value = 48
     _attr_native_step = 1
     _attr_native_unit_of_measurement = UnitOfTime.HOURS
     _attr_mode = NumberMode.BOX
@@ -52,7 +54,7 @@ class SlotDuration(CoordinatorEntity[ScheduleCoordinator], NumberEntity):
     ) -> None:
         super().__init__(coordinator)
         self._index = index
-        self._attr_name = f"Schedule {index + 1} duration"
+        self._attr_name = f"Slot {index + 1} hours"
         self._attr_unique_id = f"{device_id}_schedule_{index + 1}_duration"
         self._attr_device_info = device_info(device_id)
         active = index < len(slots) and bool(slots[index].get("active"))
@@ -63,9 +65,9 @@ class SlotDuration(CoordinatorEntity[ScheduleCoordinator], NumberEntity):
         return slots[self._index] if slots and self._index < len(slots) else None
 
     @property
-    def native_value(self) -> float | None:
+    def native_value(self) -> int | None:
         slot = self._slot()
-        return None if slot is None else float(slot.get("duration", 0))
+        return None if slot is None else int(slot.get("duration", 0))
 
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.async_update_slot(self._index, duration=int(value))

@@ -55,7 +55,7 @@ SET_SLOT_SCHEMA = vol.Schema(
         vol.Optional("enabled"): cv.boolean,
         vol.Optional("hour"): vol.All(vol.Coerce(int), vol.Range(min=0, max=23)),
         vol.Optional("minute"): vol.All(vol.Coerce(int), vol.Range(min=0, max=59)),
-        vol.Optional("duration"): vol.All(vol.Coerce(int), vol.Range(min=1, max=24)),
+        vol.Optional("duration"): vol.All(vol.Coerce(int), vol.Range(min=1, max=48)),
         vol.Optional("days"): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
     }
 )

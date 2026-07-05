@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -12,7 +13,7 @@ from . import IntexConfigEntry
 from .const import CONF_DEVICE_ID, DP_PUMP
 from .coordinator import PumpCoordinator, ScheduleCoordinator
 from .entity import device_info
-from .schedule import SLOT_COUNT, summarize
+from .schedule import SLOT_COUNT, mode_of, summarize
 
 
 async def async_setup_entry(
@@ -61,6 +62,7 @@ class SlotEnableSwitch(CoordinatorEntity[ScheduleCoordinator], SwitchEntity):
 
     _attr_has_entity_name = True
     _attr_icon = "mdi:calendar-clock"
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(
         self,
@@ -71,7 +73,7 @@ class SlotEnableSwitch(CoordinatorEntity[ScheduleCoordinator], SwitchEntity):
     ) -> None:
         super().__init__(coordinator)
         self._index = index
-        self._attr_name = f"Schedule {index + 1}"
+        self._attr_name = f"Slot {index + 1}"
         self._attr_unique_id = f"{device_id}_schedule_{index + 1}_enabled"
         self._attr_device_info = device_info(device_id)
         active = index < len(slots) and bool(slots[index].get("active"))
@@ -91,7 +93,11 @@ class SlotEnableSwitch(CoordinatorEntity[ScheduleCoordinator], SwitchEntity):
         slot = self._slot()
         if slot is None:
             return None
-        return {"summary": summarize(slot), **{k: slot[k] for k in ("hour", "minute", "duration", "days")}}
+        return {
+            "summary": summarize(slot),
+            "mode": mode_of(slot),
+            **{k: slot[k] for k in ("hour", "minute", "duration", "days", "month", "date")},
+        }
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self.coordinator.async_update_slot(self._index, enabled=True)

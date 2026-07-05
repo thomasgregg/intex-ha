@@ -18,12 +18,31 @@ Tuya abstraction — just this pump.
 | `sensor.intex_pool_alarm` | DP 127 (local) | `normal` / `E93` / … |
 | `sensor.intex_pool_timer_or_remaining` | DP 114 (local) | Timer / remaining numeric |
 | `sensor.intex_pool_schedule` | `skdl_filter` (cloud, optional) | Active timer slots (details in attributes) |
-| `switch.intex_pool_schedule_N` | `skdl_filter` (cloud, optional) | Enable/disable slot N (1-7) |
-| `time.intex_pool_schedule_N_start` | `skdl_filter` (cloud, optional) | Start time of slot N |
-| `number.intex_pool_schedule_N_duration` | `skdl_filter` (cloud, optional) | Run time of slot N in hours |
+| `switch.intex_pool_slot_N` | `skdl_filter` (cloud, optional) | Enable/disable slot N (1-7) |
+| `time.intex_pool_slot_N_start` | `skdl_filter` (cloud, optional) | Start time of slot N |
+| `number.intex_pool_slot_N_hours` | `skdl_filter` (cloud, optional) | Run time of slot N in hours (1-48) |
 
-Slot entities for slots 4-7 are disabled by default unless the slot is in
-use — enable them under *Settings → Devices & Services → Entities* if needed.
+The slot editors are **configuration entities** — they appear in the
+*Configuration* section of the device page, keeping *Controls* to just the
+pump switch. Slot entities for slots 4-7 are disabled by default unless the
+slot is in use — enable them under *Settings → Devices & Services →
+Entities* if needed. (Installs older than 0.3.0 keep their original
+`*_schedule_N*` entity IDs.)
+
+### Repeating vs FP-mode slots
+
+The Intex app writes two kinds of entries into the same 7 slots, and each
+slot switch exposes which one it is via its `mode` attribute:
+
+- `repeating` — a normal timer (control byte 1): start time + duration +
+  week repeat mask.
+- `fp_one_time` — the app's **FP mode** (control byte 0): a dated, one-off
+  long filtration run of up to 48 h; the pump reports `FP_mode` while it
+  runs and returns to the normal cycle afterwards.
+
+Turning a slot switch **on** in HA makes it a repeating timer; FP entries
+show as "off" because their control byte is 0 — that matches the device's
+own behavior, not a bug.
 
 Other observed DPs (106 bool, 110 numeric, 119 bool) are unknown and not
 exposed yet.
@@ -88,6 +107,41 @@ data:
 `sensor.intex_pool_schedule` shows the number of active slots; its
 attributes contain the decoded slots, human-readable summaries and the raw
 base64 blob.
+
+## Dashboard card
+
+Device pages are utilitarian; for a nicer pool card, paste this into a
+manual card (adjust entity IDs if your install predates 0.3.0):
+
+```yaml
+type: entities
+title: Pool Pump
+entities:
+  - entity: switch.intex_pool_pump
+    name: Pump
+  - entity: sensor.intex_pool_status
+    name: Status
+  - entity: sensor.intex_pool_alarm
+    name: Alarm
+  - type: divider
+  - entity: switch.intex_pool_slot_1
+    name: Schedule 1
+    secondary_info: attribute
+    attribute: summary
+  - entity: time.intex_pool_slot_1_start
+    name: "  Start"
+  - entity: number.intex_pool_slot_1_hours
+    name: "  Hours"
+  - type: divider
+  - entity: switch.intex_pool_slot_2
+    name: Schedule 2
+    secondary_info: attribute
+    attribute: summary
+  - entity: time.intex_pool_slot_2_start
+    name: "  Start"
+  - entity: number.intex_pool_slot_2_hours
+    name: "  Hours"
+```
 
 ## Protocol notes (verified against the real pump)
 

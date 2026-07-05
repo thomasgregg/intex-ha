@@ -5,6 +5,7 @@ from datetime import time as dt_time
 from typing import Any
 
 from homeassistant.components.time import TimeEntity
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -37,6 +38,7 @@ class SlotStartTime(CoordinatorEntity[ScheduleCoordinator], TimeEntity):
 
     _attr_has_entity_name = True
     _attr_icon = "mdi:clock-start"
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(
         self,
@@ -47,7 +49,7 @@ class SlotStartTime(CoordinatorEntity[ScheduleCoordinator], TimeEntity):
     ) -> None:
         super().__init__(coordinator)
         self._index = index
-        self._attr_name = f"Schedule {index + 1} start"
+        self._attr_name = f"Slot {index + 1} start"
         self._attr_unique_id = f"{device_id}_schedule_{index + 1}_start"
         self._attr_device_info = device_info(device_id)
         # Unused trailing slots stay out of the UI unless enabled manually.
