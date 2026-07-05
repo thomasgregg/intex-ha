@@ -78,8 +78,10 @@ class SlotDuration(CoordinatorEntity[ScheduleCoordinator], NumberEntity):
 class FpHours(CoordinatorEntity[ScheduleCoordinator], RestoreNumber):
     """Duration used by the "Start FP" button (restored across restarts)."""
 
+    # Named "Start FP hours" so the device page's alphabetical ordering puts
+    # it right after the "Start FP" button (Pump -> Start FP -> Start FP hours).
     _attr_has_entity_name = True
-    _attr_name = "FP hours"
+    _attr_name = "Start FP hours"
     _attr_icon = "mdi:timer-plus"
     _attr_native_min_value = 1
     _attr_native_max_value = 48

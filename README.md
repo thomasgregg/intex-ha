@@ -23,7 +23,7 @@ Tuya abstraction — just this pump.
 | `number.intex_pool_slot_N_hours` | `skdl_filter` (cloud, optional) | Run time of slot N in hours (1-48) |
 | `text.intex_pool_slot_N_days` | `skdl_filter` (cloud, optional) | Repeat days: `daily`, `once` (FP) or `mon,wed,fri` |
 | `button.intex_pool_start_fp` | `skdl_filter` (cloud, optional) | Start a one-time FP run (~2 min from now) |
-| `number.intex_pool_fp_hours` | — | Duration for the Start FP button (1-48 h, default 24) |
+| `number.intex_pool_start_fp_hours` | — | Duration for the Start FP button (1-48 h, default 24) |
 
 **Start FP** writes a dated one-time entry into the first free slot,
 starting about two minutes after the press, for "FP hours" hours — the
