@@ -95,6 +95,20 @@ class CloudClient:
                 return prop.get("value")
         return None
 
+    def get_model(self, device_id: str) -> Any:
+        """Return the device's Tuya thing model (official DP names/types/enums)."""
+        resp = self._cloud.cloudrequest(f"/v2.0/cloud/thing/{device_id}/model")
+        self._check(resp, "read thing model")
+        return resp.get("result")
+
+    def get_all_properties(self, device_id: str) -> Any:
+        """Return all shadow properties (raw, for diagnostics)."""
+        resp = self._cloud.cloudrequest(
+            f"/v2.0/cloud/thing/{device_id}/shadow/properties"
+        )
+        self._check(resp, "read properties")
+        return (resp.get("result") or {}).get("properties")
+
     def set_property(self, device_id: str, code: str, value: Any) -> None:
         """Write one shadow property via the property-issue API."""
         resp = self._cloud.cloudrequest(

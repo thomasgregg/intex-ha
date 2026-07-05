@@ -55,8 +55,16 @@ slot switch exposes which one it is via its `mode` attribute
 The slot switch mirrors the app's enable toggle (the `on` byte) for both
 kinds — it never changes the slot's mode or timing.
 
+There is also `binary_sensor.intex_pool_problem` (device class *problem*):
+**on** whenever the alarm DP reports anything other than `normal` — handy
+for dashboards and notification automations; the current code and a
+description are in its attributes.
+
 Other observed DPs (106 bool, 110 numeric, 119 bool) are unknown and not
-exposed yet.
+exposed yet. To identify them: with cloud credentials configured, use
+*Device page → Download diagnostics* — the download includes the pump's
+official Tuya **thing model** (every DP with name, type and enum values)
+plus all cloud properties and current local DPs.
 
 ## Installation
 
