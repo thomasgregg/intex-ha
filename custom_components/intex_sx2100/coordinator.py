@@ -98,6 +98,39 @@ class ScheduleCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             raise UpdateFailed(f"{type(err).__name__}: {err}") from err
         return {"raw": raw, "slots": schedule.decode_schedules(raw)}
 
+    async def _fresh_slots(self) -> list[dict[str, Any]]:
+        """Read the CURRENT blob from the cloud (never trust the poll cache).
+
+        Every write uploads all 56 bytes, so basing it on a cached blob (up to
+        one poll interval old) would resurrect schedules deleted in the app or
+        overwrite edits made there. Caller must hold the write lock.
+        """
+        try:
+            raw = await self.hass.async_add_executor_job(
+                self.cloud.get_property, self.device_id, SCHEDULE_CODE
+            )
+        except TuyaError as err:
+            raise HomeAssistantError(
+                f"Could not read the current schedule before writing: {err}"
+            ) from err
+        return schedule.decode_schedules(raw)
+
+    async def _write_slots(self, slots: list[dict[str, Any]]) -> None:
+        """Upload the blob and publish optimistically. Caller holds the lock;
+        the 5 s settle wait keeps a second edit from reading the stale cloud
+        state mid-propagation."""
+        b64 = schedule.encode_schedules(slots)
+        try:
+            await self.hass.async_add_executor_job(
+                self.cloud.set_property, self.device_id, SCHEDULE_CODE, b64
+            )
+        except TuyaError as err:
+            raise HomeAssistantError(f"Schedule write failed: {err}") from err
+        self.async_set_updated_data(
+            {"raw": b64, "slots": schedule.decode_schedules(b64)}
+        )
+        await asyncio.sleep(5)
+
     async def async_update_slot(
         self,
         index: int,
@@ -109,30 +142,32 @@ class ScheduleCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         days: int | None = None,
         clear: bool = False,
     ) -> None:
-        """Update one slot with sensible defaults for previously-empty slots."""
-        slots = (self.data or {}).get("slots") or schedule.decode_schedules(None)
-        was_empty = not (0 <= index < len(slots) and slots[index].get("active"))
-        new = schedule.set_slot(
-            slots,
-            index,
-            enabled=enabled,
-            hour=hour,
-            minute=minute,
-            duration=duration,
-            days=days,
-            clear=clear,
-        )
-        rec = new[index]
-        if not clear and was_empty and rec.get("active"):
-            # A truly empty slot being brought to life needs a repeat mask and
-            # a non-zero worktime, or the pump ignores it. Existing entries are
-            # never touched: FP-mode slots legitimately have days == 0, and
-            # forcing a mask on them would turn a one-time run into a daily one.
-            if days is None and not rec.get("days"):
-                rec["days"] = schedule.DAYS_EVERY
-            if not rec.get("duration"):
-                rec["duration"] = 1
-        await self.async_write_slots(new)
+        """Read-modify-write one slot against fresh cloud state."""
+        async with self._write_lock:
+            slots = await self._fresh_slots()
+            was_empty = not slots[index].get("active")
+            new = schedule.set_slot(
+                slots,
+                index,
+                enabled=enabled,
+                hour=hour,
+                minute=minute,
+                duration=duration,
+                days=days,
+                clear=clear,
+            )
+            rec = new[index]
+            if not clear and was_empty and rec.get("active"):
+                # A truly empty slot being brought to life needs a repeat mask
+                # and a non-zero worktime, or the pump ignores it. Existing
+                # entries are never touched: FP-mode slots legitimately have
+                # days == 0, and forcing a mask would make them daily.
+                if days is None and not rec.get("days"):
+                    rec["days"] = schedule.DAYS_EVERY
+                if not rec.get("duration"):
+                    rec["duration"] = 1
+            await self._write_slots(new)
+        await self.async_request_refresh()
 
     async def async_start_fp(self) -> None:
         """Write a one-time FP entry into a free slot, starting in ~2 minutes.
@@ -140,38 +175,25 @@ class ScheduleCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         Mirrors the app's FP mode: dated entry, days == 0, enabled, duration
         up to 48 h. The pump runs it once, then returns to the normal cycle.
         """
-        slots = (self.data or {}).get("slots") or schedule.decode_schedules(None)
-        try:
-            index = next(i for i, s in enumerate(slots) if not s.get("active"))
-        except StopIteration:
-            raise HomeAssistantError(
-                "All 7 schedule slots are in use — clear one first"
-            ) from None
-        start = dt_util.now() + timedelta(minutes=2)
-        new = schedule.set_slot(
-            slots,
-            index,
-            enabled=True,
-            month=start.month,
-            date=start.day,
-            hour=start.hour,
-            minute=start.minute,
-            duration=max(1, min(int(self.fp_hours), 48)),
-            days=0,
-        )
-        await self.async_write_slots(new)
-
-    async def async_write_slots(self, slots: list[dict[str, Any]]) -> None:
-        """Write slots back. Serialized + optimistic: the cloud takes a few
-        seconds to reflect a write, and a second edit inside that window would
-        otherwise read the stale blob and undo the first edit."""
         async with self._write_lock:
-            b64 = schedule.encode_schedules(slots)
-            await self.hass.async_add_executor_job(
-                self.cloud.set_property, self.device_id, SCHEDULE_CODE, b64
+            slots = await self._fresh_slots()
+            try:
+                index = next(i for i, s in enumerate(slots) if not s.get("active"))
+            except StopIteration:
+                raise HomeAssistantError(
+                    "All 7 schedule slots are in use — clear one first"
+                ) from None
+            start = dt_util.now() + timedelta(minutes=2)
+            new = schedule.set_slot(
+                slots,
+                index,
+                enabled=True,
+                month=start.month,
+                date=start.day,
+                hour=start.hour,
+                minute=start.minute,
+                duration=max(1, min(int(self.fp_hours), 48)),
+                days=0,
             )
-            self.async_set_updated_data(
-                {"raw": b64, "slots": schedule.decode_schedules(b64)}
-            )
-            await asyncio.sleep(5)
+            await self._write_slots(new)
         await self.async_request_refresh()
