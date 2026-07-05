@@ -1,0 +1,170 @@
+# Intex SX2100 pool dashboard card
+# Paste into a manual card. Schedules appear automatically: each slot is
+# wrapped in a conditional card that only shows when the slot is in use
+# (hours > 0). Requires no custom frontend cards.
+type: vertical-stack
+cards:
+  - type: tile
+    entity: switch.intex_pool_pump
+    name: Pool Pump
+    icon: mdi:pump
+    features:
+      - type: toggle
+  - type: horizontal-stack
+    cards:
+      - type: tile
+        entity: sensor.intex_pool_mode
+        name: Mode
+      - type: tile
+        entity: binary_sensor.intex_pool_problem
+        name: Health
+  - type: horizontal-stack
+    cards:
+      - type: tile
+        entity: button.intex_pool_start_fp
+        name: Boost (FP)
+        icon: mdi:rocket-launch
+        tap_action:
+          action: perform-action
+          perform_action: button.press
+          target:
+            entity_id: button.intex_pool_start_fp
+      - type: tile
+        entity: number.intex_pool_start_fp_hours
+        name: FP hours
+        features:
+          - type: numeric-input
+            style: buttons
+  - type: conditional
+    conditions:
+      - condition: numeric_state
+        entity: number.intex_pool_slot_1_hours
+        above: 0
+    card:
+      type: entities
+      title: Schedule 1
+      entities:
+        - entity: switch.intex_pool_slot_1
+          name: Enabled
+          secondary_info: attribute
+          attribute: summary
+        - entity: time.intex_pool_slot_1_start
+          name: Start
+        - entity: number.intex_pool_slot_1_hours
+          name: Hours
+        - entity: text.intex_pool_slot_1_days
+          name: Days
+  - type: conditional
+    conditions:
+      - condition: numeric_state
+        entity: number.intex_pool_slot_2_hours
+        above: 0
+    card:
+      type: entities
+      title: Schedule 2
+      entities:
+        - entity: switch.intex_pool_slot_2
+          name: Enabled
+          secondary_info: attribute
+          attribute: summary
+        - entity: time.intex_pool_slot_2_start
+          name: Start
+        - entity: number.intex_pool_slot_2_hours
+          name: Hours
+        - entity: text.intex_pool_slot_2_days
+          name: Days
+  - type: conditional
+    conditions:
+      - condition: numeric_state
+        entity: number.intex_pool_slot_3_hours
+        above: 0
+    card:
+      type: entities
+      title: Schedule 3
+      entities:
+        - entity: switch.intex_pool_slot_3
+          name: Enabled
+          secondary_info: attribute
+          attribute: summary
+        - entity: time.intex_pool_slot_3_start
+          name: Start
+        - entity: number.intex_pool_slot_3_hours
+          name: Hours
+        - entity: text.intex_pool_slot_3_days
+          name: Days
+  - type: conditional
+    conditions:
+      - condition: numeric_state
+        entity: number.intex_pool_slot_4_hours
+        above: 0
+    card:
+      type: entities
+      title: Schedule 4
+      entities:
+        - entity: switch.intex_pool_slot_4
+          name: Enabled
+          secondary_info: attribute
+          attribute: summary
+        - entity: time.intex_pool_slot_4_start
+          name: Start
+        - entity: number.intex_pool_slot_4_hours
+          name: Hours
+        - entity: text.intex_pool_slot_4_days
+          name: Days
+  - type: conditional
+    conditions:
+      - condition: numeric_state
+        entity: number.intex_pool_slot_5_hours
+        above: 0
+    card:
+      type: entities
+      title: Schedule 5
+      entities:
+        - entity: switch.intex_pool_slot_5
+          name: Enabled
+          secondary_info: attribute
+          attribute: summary
+        - entity: time.intex_pool_slot_5_start
+          name: Start
+        - entity: number.intex_pool_slot_5_hours
+          name: Hours
+        - entity: text.intex_pool_slot_5_days
+          name: Days
+  - type: conditional
+    conditions:
+      - condition: numeric_state
+        entity: number.intex_pool_slot_6_hours
+        above: 0
+    card:
+      type: entities
+      title: Schedule 6
+      entities:
+        - entity: switch.intex_pool_slot_6
+          name: Enabled
+          secondary_info: attribute
+          attribute: summary
+        - entity: time.intex_pool_slot_6_start
+          name: Start
+        - entity: number.intex_pool_slot_6_hours
+          name: Hours
+        - entity: text.intex_pool_slot_6_days
+          name: Days
+  - type: conditional
+    conditions:
+      - condition: numeric_state
+        entity: number.intex_pool_slot_7_hours
+        above: 0
+    card:
+      type: entities
+      title: Schedule 7
+      entities:
+        - entity: switch.intex_pool_slot_7
+          name: Enabled
+          secondary_info: attribute
+          attribute: summary
+        - entity: time.intex_pool_slot_7_start
+          name: Start
+        - entity: number.intex_pool_slot_7_hours
+          name: Hours
+        - entity: text.intex_pool_slot_7_days
+          name: Days

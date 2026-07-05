@@ -153,38 +153,38 @@ actions:
 
 ## Dashboard card
 
+A ready-made card lives in
+[`examples/dashboard-card.yaml`](examples/dashboard-card.yaml) — paste it
+into a manual card. It uses only built-in card types:
+
+- **Tile controls** for pump toggle, mode, health, and a one-tap
+  **Boost (FP)** button with +/- duration input
+- **Self-updating schedule list**: each of the 7 slots is wrapped in a
+  conditional card that renders only while the slot is in use, so new
+  schedules appear and cleared ones vanish automatically
+
+The pattern per slot:
+
 ```yaml
-type: entities
-title: Pool Pump
-entities:
-  - entity: switch.intex_pool_pump
-    name: Pump
-  - entity: sensor.intex_pool_mode
-    name: Mode
-  - entity: binary_sensor.intex_pool_problem
-    name: Health
-  - type: divider
-  - entity: switch.intex_pool_slot_1
-    name: Schedule 1
-    secondary_info: attribute
-    attribute: summary
-  - entity: time.intex_pool_slot_1_start
-    name: Start
-  - entity: number.intex_pool_slot_1_hours
-    name: Hours
-  - entity: text.intex_pool_slot_1_days
-    name: Days
-  - type: divider
-  - entity: switch.intex_pool_slot_2
-    name: Schedule 2
-    secondary_info: attribute
-    attribute: summary
-  - entity: time.intex_pool_slot_2_start
-    name: Start
-  - entity: number.intex_pool_slot_2_hours
-    name: Hours
-  - entity: text.intex_pool_slot_2_days
-    name: Days
+- type: conditional
+  conditions:
+    - condition: numeric_state
+      entity: number.intex_pool_slot_1_hours
+      above: 0
+  card:
+    type: entities
+    title: Schedule 1
+    entities:
+      - entity: switch.intex_pool_slot_1
+        name: Enabled
+        secondary_info: attribute
+        attribute: summary
+      - entity: time.intex_pool_slot_1_start
+        name: Start
+      - entity: number.intex_pool_slot_1_hours
+        name: Hours
+      - entity: text.intex_pool_slot_1_days
+        name: Days
 ```
 
 ## Protocol reference
