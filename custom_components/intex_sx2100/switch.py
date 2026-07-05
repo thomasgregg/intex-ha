@@ -10,7 +10,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import IntexConfigEntry
-from .const import CONF_DEVICE_ID, DP_PUMP
+from .const import CONF_DEVICE_ID, DP_FILTER_SWITCH, DP_PUMP
 from .coordinator import PumpCoordinator, ScheduleCoordinator
 from .entity import device_info
 from .schedule import SLOT_COUNT, mode_of, summarize
@@ -23,7 +23,10 @@ async def async_setup_entry(
 ) -> None:
     """Set up the pump switch and, with cloud access, slot enable switches."""
     device_id = entry.data[CONF_DEVICE_ID]
-    entities: list[SwitchEntity] = [PumpSwitch(entry.runtime_data.pump, device_id)]
+    entities: list[SwitchEntity] = [
+        PumpSwitch(entry.runtime_data.pump, device_id),
+        FilterSwitch(entry.runtime_data.pump, device_id),
+    ]
     if (schedules := entry.runtime_data.schedules) is not None:
         slots = (schedules.data or {}).get("slots") or []
         entities.extend(
@@ -55,6 +58,33 @@ class PumpSwitch(CoordinatorEntity[PumpCoordinator], SwitchEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self.coordinator.async_set_pump(False)
+
+
+class FilterSwitch(CoordinatorEntity[PumpCoordinator], SwitchEntity):
+    """filter_switch (DP 106) — official name from the thing model, but the
+    physical effect is untested. Disabled by default; enable and test
+    carefully with the pump under observation."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Filter switch (untested)"
+    _attr_icon = "mdi:air-filter"
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(self, coordinator: PumpCoordinator, device_id: str) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{device_id}_filter_switch"
+        self._attr_device_info = device_info(device_id)
+
+    @property
+    def is_on(self) -> bool | None:
+        value = (self.coordinator.data or {}).get(DP_FILTER_SWITCH)
+        return None if value is None else value is True
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self.coordinator.async_set_bool(DP_FILTER_SWITCH, True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self.coordinator.async_set_bool(DP_FILTER_SWITCH, False)
 
 
 class SlotEnableSwitch(CoordinatorEntity[ScheduleCoordinator], SwitchEntity):

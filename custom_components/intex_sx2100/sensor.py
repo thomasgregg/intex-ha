@@ -1,15 +1,26 @@
-"""Sensors: pump status (125), alarm (127), timer/remaining (114), schedules."""
+"""Sensors: status, alarm, decoded error code, working time, schedules."""
 from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import (
+    SensorEntity,
+    SensorStateClass,
+)
+from homeassistant.const import UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import IntexConfigEntry
-from .const import CONF_DEVICE_ID, DP_ALARM, DP_STATE, DP_TIMER
+from .const import (
+    CONF_DEVICE_ID,
+    DP_ALARM,
+    DP_ERROR_BITMAP,
+    DP_STATE,
+    DP_WORKING_TIME,
+    decode_error_bits,
+)
 from .coordinator import PumpCoordinator, ScheduleCoordinator
 from .entity import device_info
 from .schedule import summarize
@@ -26,7 +37,8 @@ async def async_setup_entry(
     entities: list[SensorEntity] = [
         DpSensor(pump, device_id, "Status", DP_STATE, "mdi:pump"),
         DpSensor(pump, device_id, "Alarm", DP_ALARM, "mdi:alert-circle-outline"),
-        DpSensor(pump, device_id, "Timer or remaining", DP_TIMER, "mdi:timer-outline"),
+        ErrorCodeSensor(pump, device_id),
+        WorkingTimeSensor(pump, device_id),
     ]
     if entry.runtime_data.schedules is not None:
         entities.append(ScheduleSensor(entry.runtime_data.schedules, device_id))
@@ -56,6 +68,45 @@ class DpSensor(CoordinatorEntity[PumpCoordinator], SensorEntity):
     @property
     def native_value(self) -> Any:
         return (self.coordinator.data or {}).get(self._dp)
+
+
+class ErrorCodeSensor(DpSensor):
+    """Decoded error_code bitmap (DP 114): ``none`` or e.g. ``E93``.
+
+    Keeps the original DP 114 unique_id, so installs that knew this DP as
+    "Timer or remaining" retain their entity (the label was wrong — the
+    thing model says it's the error bitmap).
+    """
+
+    def __init__(self, coordinator: PumpCoordinator, device_id: str) -> None:
+        super().__init__(
+            coordinator, device_id, "Error code", DP_ERROR_BITMAP, "mdi:alert-decagram-outline"
+        )
+
+    @property
+    def native_value(self) -> str | None:
+        raw = (self.coordinator.data or {}).get(self._dp)
+        if raw is None:
+            return None
+        codes = decode_error_bits(int(raw))
+        return ", ".join(codes) if codes else "none"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        raw = (self.coordinator.data or {}).get(self._dp)
+        return {"bitmap": raw, "active_errors": decode_error_bits(int(raw or 0))}
+
+
+class WorkingTimeSensor(DpSensor):
+    """working_time (DP 110): runtime counter in hours (0-250)."""
+
+    _attr_native_unit_of_measurement = UnitOfTime.HOURS
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, coordinator: PumpCoordinator, device_id: str) -> None:
+        super().__init__(
+            coordinator, device_id, "Working time", DP_WORKING_TIME, "mdi:timer-sync-outline"
+        )
 
 
 class ScheduleSensor(CoordinatorEntity[ScheduleCoordinator], SensorEntity):

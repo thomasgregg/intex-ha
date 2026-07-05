@@ -19,14 +19,32 @@ DEFAULT_CLOUD_INTERVAL = 900  # seconds — schedules rarely change; spare the c
 # The only protocol version this pump answers on (3.3 -> Err 904, 3.4 -> Err 914).
 PROTOCOL_VERSION = 3.5
 
-# Datapoints (tinytuya returns DP keys as strings)
-DP_PUMP = "104"  # pump / filtration on-off (bool)
-DP_UNKNOWN_106 = "106"  # unknown bool
-DP_UNKNOWN_110 = "110"  # unknown numeric
-DP_TIMER = "114"  # timer / remaining / status numeric
-DP_UNKNOWN_119 = "119"  # unknown bool
-DP_STATE = "125"  # pump state: working / FP_mode / sleep
-DP_ALARM = "127"  # alarm state: normal / E93 / ...
+# Datapoints (tinytuya returns DP keys as strings).
+# Official Tuya thing-model names, dumped from the real pump 2026-07-05.
+DP_PUMP = "104"  # power_switch (rw bool)
+DP_FILTER_SWITCH = "106"  # filter_switch (rw bool) — effect untested!
+DP_WORKING_TIME = "110"  # working_time (ro value, 0-250 hours)
+DP_ERROR_BITMAP = "114"  # error_code (ro bitmap, see ERROR_BIT_LABELS)
+DP_MESH = "119"  # mesh_indicator (ro bool)
+DP_STATE = "125"  # working_indicator: working / FP_mode / sleep / boost
+DP_ALARM = "127"  # warntype_indicator: normal / E93 / DIRTY / unnormal
+
+# error_code bitmap: bit index -> thing-model label. Label 1xx corresponds to
+# the app's Exx display (observed live: bit 5 set (32) while DP 127 showed
+# E93; label at index 5 is '193').
+ERROR_BIT_LABELS = [
+    "181", "180", "190", "191", "192", "193",
+    "194", "195", "196", "199", "200", "197",
+]
+
+
+def decode_error_bits(value: int) -> list[str]:
+    """Decode the error_code bitmap into app-style codes, e.g. [1] -> ['E80']."""
+    return [
+        f"E{int(label) - 100}"
+        for i, label in enumerate(ERROR_BIT_LABELS)
+        if value >> i & 1
+    ]
 
 # Cloud-only schedule property (the pump's internal timer program)
 SCHEDULE_CODE = "skdl_filter"

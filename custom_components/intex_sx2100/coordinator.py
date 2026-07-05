@@ -48,12 +48,16 @@ class PumpCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except Exception as err:  # noqa: BLE001 — tinytuya raises broadly
             raise UpdateFailed(f"{type(err).__name__}: {err}") from err
 
-    async def async_set_pump(self, on: bool) -> None:
-        """Switch the pump, publish optimistically, then confirm by refresh."""
-        await self.hass.async_add_executor_job(self.pump.set_pump, DP_PUMP, on)
+    async def async_set_bool(self, dp: str, on: bool) -> None:
+        """Write a boolean DP, publish optimistically, then confirm by refresh."""
+        await self.hass.async_add_executor_job(self.pump.set_pump, dp, on)
         if self.data is not None:
-            self.async_set_updated_data({**self.data, DP_PUMP: on})
+            self.async_set_updated_data({**self.data, dp: on})
         await self.async_request_refresh()
+
+    async def async_set_pump(self, on: bool) -> None:
+        """Switch the pump (DP 104)."""
+        await self.async_set_bool(DP_PUMP, on)
 
 
 class ScheduleCoordinator(DataUpdateCoordinator[dict[str, Any]]):

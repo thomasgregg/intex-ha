@@ -13,10 +13,14 @@ Tuya abstraction — just this pump.
 
 | Entity | Source | Meaning |
 |---|---|---|
-| `switch.intex_pool_pump` | DP 104 (local) | Filtration on/off |
-| `sensor.intex_pool_status` | DP 125 (local) | `working` / `FP_mode` / `sleep` |
-| `sensor.intex_pool_alarm` | DP 127 (local) | `normal` / `E93` / … |
-| `sensor.intex_pool_timer_or_remaining` | DP 114 (local) | Timer / remaining numeric |
+| `switch.intex_pool_pump` | DP 104 `power_switch` | Filtration on/off |
+| `sensor.intex_pool_status` | DP 125 `working_indicator` | `working` / `FP_mode` / `sleep` / `boost` |
+| `sensor.intex_pool_alarm` | DP 127 `warntype_indicator` | `normal` / `E93` / `DIRTY` / `unnormal` |
+| `sensor.intex_pool_error_code` | DP 114 `error_code` | Decoded error bitmap: `none` or e.g. `E93` (pre-0.7.0 installs keep the old `timer_or_remaining` entity ID) |
+| `sensor.intex_pool_working_time` | DP 110 `working_time` | Runtime counter, 0-250 h |
+| `binary_sensor.intex_pool_problem` | DP 127 + 114 | On for any alarm or error bit; description in attributes |
+| `switch.intex_pool_filter_switch_untested` | DP 106 `filter_switch` | ⚠ Disabled by default — writable per the thing model, physical effect untested |
+| `binary_sensor.intex_pool_mesh_indicator` | DP 119 `mesh_indicator` | Diagnostic, disabled by default |
 | `sensor.intex_pool_schedule` | `skdl_filter` (cloud, optional) | Active timer slots (details in attributes) |
 | `switch.intex_pool_slot_N` | `skdl_filter` (cloud, optional) | Enable/disable slot N (1-7) |
 | `time.intex_pool_slot_N_start` | `skdl_filter` (cloud, optional) | Start time of slot N |
@@ -55,16 +59,9 @@ slot switch exposes which one it is via its `mode` attribute
 The slot switch mirrors the app's enable toggle (the `on` byte) for both
 kinds — it never changes the slot's mode or timing.
 
-There is also `binary_sensor.intex_pool_problem` (device class *problem*):
-**on** whenever the alarm DP reports anything other than `normal` — handy
-for dashboards and notification automations; the current code and a
-description are in its attributes.
-
-Other observed DPs (106 bool, 110 numeric, 119 bool) are unknown and not
-exposed yet. To identify them: with cloud credentials configured, use
-*Device page → Download diagnostics* — the download includes the pump's
-official Tuya **thing model** (every DP with name, type and enum values)
-plus all cloud properties and current local DPs.
+All DP meanings above come from the pump's official Tuya **thing model**
+(dumped via *Device page → Download diagnostics*, which also includes all
+cloud properties and current local DPs — useful for bug reports).
 
 ## Installation
 
@@ -201,10 +198,16 @@ entities:
 
 ```text
 protocol: 3.5 (3.3 -> Err 904, 3.4 -> Err 914)
-DP 104: pump on/off        (set true -> state FP_mode, false -> working)
-DP 125: state              working / FP_mode / sleep
-DP 127: alarm              normal / E93
-DP 114: timer/remaining    numeric
+DP 104: power_switch       rw bool (set true -> state FP_mode, false -> working)
+DP 106: filter_switch      rw bool — physical effect untested
+DP 110: working_time       ro value, 0-250 hours
+DP 114: error_code         ro bitmap; bits -> 181,180,190,191,192,193,
+                           194,195,196,199,200,197 (label 1xx = app code Exx;
+                           verified: bit 5 (32) set while DP 127 showed E93)
+DP 115: skdl_filter        rw raw — schedule blob (cloud-only)
+DP 119: mesh_indicator     ro bool
+DP 125: working_indicator  enum: working / FP_mode / sleep / boost
+DP 127: warntype_indicator enum: normal / E93 / DIRTY / unnormal
 ```
 
 Week byte of a schedule slot (live-verified Mon-only -> 192, Wed-only -> 144):
