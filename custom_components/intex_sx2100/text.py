@@ -20,9 +20,6 @@ from .coordinator import ScheduleCoordinator
 from .entity import device_info
 from .schedule import SLOT_COUNT, days_to_text, text_to_days
 
-_DAY = "(mon|tue|wed|thu|fri|sat|sun)"
-_PATTERN = rf"^\s*(once|daily|{_DAY}(\s*,\s*{_DAY})*)\s*$"
-
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -46,9 +43,11 @@ class SlotDays(CoordinatorEntity[ScheduleCoordinator], TextEntity):
     _attr_has_entity_name = True
     _attr_icon = "mdi:calendar-week"
     _attr_entity_category = EntityCategory.CONFIG
-    _attr_pattern = _PATTERN
+    # No frontend pattern: the backend parser is lenient (full day names,
+    # spaces, 'every day') and raises a plain-language error instead of the
+    # frontend's regex dump.
     _attr_native_min = 0
-    _attr_native_max = 27  # len("mon,tue,wed,thu,fri,sat,sun")
+    _attr_native_max = 60
 
     def __init__(
         self,

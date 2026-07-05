@@ -49,19 +49,42 @@ def days_to_text(days: int) -> str:
 
 
 def text_to_days(text: str) -> int:
-    """Parse ``once`` / ``daily`` / ``mon,wed`` back into the week byte."""
+    """Parse the week byte, leniently.
+
+    Accepts ``once``, ``daily`` (also ``every day``/``all``), and day lists in
+    short or full form with comma/space separators: ``mon,wed``, ``Monday
+    Friday``, ``mon + fri``.
+    """
     cleaned = text.strip().lower()
-    if cleaned in ("once", ""):
+    if cleaned in ("once", "never", ""):
         return 0
-    if cleaned == "daily":
+    if cleaned.replace(" ", "") in ("daily", "everyday", "all"):
         return DAYS_EVERY
+    full_names = {
+        "mon": "monday", "tue": "tuesday", "wed": "wednesday", "thu": "thursday",
+        "fri": "friday", "sat": "saturday", "sun": "sunday",
+    }
     days = REPEAT_FLAG
-    for token in cleaned.replace(" ", "").split(","):
-        if token not in DAY_BITS:
+    tokens = [t for t in cleaned.replace("+", " ").replace(",", " ").split() if t]
+    for token in tokens:
+        abbr = token[:3]
+        # valid if it's a day abbreviation or any prefix of the full name
+        if abbr in DAY_BITS and full_names[abbr].startswith(token):
+            days |= DAY_BITS[abbr]
+        elif token in ("daily", "once", "every", "everyday", "all", "day"):
             raise ValueError(
-                f"unknown day '{token}' — use once, daily, or e.g. mon,wed,fri"
+                f"'{token}' can't be combined with other words — use it alone, "
+                "or list day names like 'mon,wed,fri'"
             )
-        days |= DAY_BITS[token]
+        else:
+            raise ValueError(
+                f"'{token}' is not a day — try 'daily', 'once', or day names "
+                "like 'mon,wed,fri' or 'Monday Friday'"
+            )
+    if days == REPEAT_FLAG:
+        raise ValueError(
+            "no days given — try 'daily', 'once', or day names like 'mon,wed,fri'"
+        )
     return days
 
 
