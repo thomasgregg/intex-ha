@@ -45,8 +45,8 @@ Intex SX2100 Pool Pump*.
 | Setting | Required | Notes |
 |---|---|---|
 | IP address | ✅ | e.g. `192.168.178.146` — give the pump a static DHCP lease |
-| Device ID | ✅ | extract with `python -m tinytuya wizard` |
-| Local key | ✅ | same wizard; rotates if the pump is re-paired in the app |
+| Device ID | ✅ | from the Tuya wizard (below) |
+| Local key | ✅ | from the Tuya wizard; rotates if the pump is re-paired in the app |
 | Tuya cloud client ID + secret | optional | from [iot.tuya.com](https://iot.tuya.com), enables schedule entities |
 | Cloud region | optional | data center of your app account, e.g. `eu` |
 
@@ -54,6 +54,58 @@ Schedules live only in the Tuya cloud (`skdl_filter`), so the cloud
 credentials unlock them; switching and sensors are pure LAN either way.
 Polling intervals are adjustable via the integration's *Configure* dialog
 (defaults: local 15 s, cloud 15 min — well within Tuya's free API tier).
+
+### Getting the device ID and local key
+
+The pump talks on the LAN using a per-device **local key**. Tuya doesn't
+show it in the app, so you retrieve it once via a free Tuya developer
+account and the `tinytuya` wizard. You only do this once (the key stays
+valid unless you re-pair the pump in the app).
+
+**1. Pair the pump in the Intex / Smart Life app** (if you haven't already),
+and confirm it works there.
+
+**2. Create a Tuya IoT Platform cloud project.** Sign up at
+[iot.tuya.com](https://iot.tuya.com) → *Cloud* → *Development* → *Create
+Cloud Project*. Pick the **data center that matches your region** (e.g.
+*Central Europe* for `eu`) — this must match the region your app account
+uses. After creating it, the project's *Overview* tab shows an
+**Access ID** (client ID) and **Access Secret** (client secret) — note both.
+
+**3. Link your app account to the project.** In the project, open
+*Devices* → *Link App Account* → *Add App Account*, then scan the shown QR
+code with the Intex/Smart Life app (*Me* → top-right scan icon). Your pump
+now appears under the project's devices.
+
+**4. Run the wizard.** On any computer with Python:
+
+```bash
+pip install tinytuya
+python -m tinytuya wizard
+```
+
+It asks for the **Access ID**, **Access Secret**, and a region (`eu`,
+`us`, `cn`, or `in`). It then downloads your device list and writes a
+`devices.json` file (and prints the results). Find your pump's entry — the
+fields you need are:
+
+- `id` → **Device ID**
+- `key` → **Local key**
+- `ip` → the pump's LAN **IP address** (if blank, the wizard's network
+  scan couldn't reach it — get the IP from your router instead)
+
+**5. Enter them in Home Assistant** when adding the integration. The
+**Access ID / Access Secret** from step 2 are also exactly what you enter
+as the optional *cloud client ID / secret* to enable schedules.
+
+> [!TIP]
+> Re-pairing the pump in the app rotates the local key — if local control
+> suddenly fails with an auth error, re-run the wizard to get the new key.
+
+Prefer clicking to the command line? The same values are on the Tuya site:
+*Cloud* → your project → *Devices* → *Device List* → your pump shows the
+Device ID, and *Cloud* → *API Explorer* → *Query Device Details Info*
+returns the `local_key`.
 
 ## Entities
 
