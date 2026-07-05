@@ -156,15 +156,17 @@ actions:
 
 A ready-made card lives in
 [`examples/dashboard-card.yaml`](examples/dashboard-card.yaml) — paste it
-into a manual card. It uses only built-in card types:
+into a manual card.
 
-- **Tile controls** for pump toggle, mode, health, and a one-tap
-  **Boost (FP)** button with +/- duration input
-- **Self-updating schedule list**: each of the 7 slots is wrapped in a
-  conditional card that renders only while the slot is in use, so new
-  schedules appear and cleared ones vanish automatically
+- **Tile controls** for pump toggle, mode, health, refresh, and a one-tap
+  **Boost (FP)** button with +/- duration input (all built-in card types)
+- **Collapsible, self-updating schedules**: each slot is wrapped in a
+  conditional card that renders only while the slot is in use, inside a
+  collapsible header — so schedules appear/vanish automatically and stay
+  tucked away until you expand them
 
-The pattern per slot:
+The schedule sections use the [Expander Card](https://github.com/MelleD/lovelace-expander-card)
+(install from HACS — search "Expander Card"). Pattern per slot:
 
 ```yaml
 - type: conditional
@@ -173,20 +175,28 @@ The pattern per slot:
       entity: number.intex_pool_slot_1_hours
       above: 0
   card:
-    type: entities
+    type: custom:expander-card
     title: Schedule 1
-    entities:
-      - entity: switch.intex_pool_slot_1
-        name: Enabled
-        secondary_info: attribute
-        attribute: summary
-      - entity: time.intex_pool_slot_1_start
-        name: Start
-      - entity: number.intex_pool_slot_1_hours
-        name: Hours
-      - entity: text.intex_pool_slot_1_days
-        name: Days
+    expanded: false
+    title-card-clickable: true
+    cards:
+      - type: entities
+        entities:
+          - entity: switch.intex_pool_slot_1
+            name: Enabled
+            secondary_info: attribute
+            attribute: summary
+          - entity: time.intex_pool_slot_1_start
+            name: Start
+          - entity: number.intex_pool_slot_1_hours
+            name: Hours
+          - entity: text.intex_pool_slot_1_days
+            name: Days
 ```
+
+If you prefer no extra install, replace `custom:expander-card` with a plain
+`entities` card (drop the `expanded`/`title-card-clickable` lines) — you lose
+the collapsing but keep everything native.
 
 ## Protocol reference
 
