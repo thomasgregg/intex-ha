@@ -24,6 +24,7 @@ cards:
         entity: button.intex_pool_start_fp
         name: Boost (FP)
         icon: mdi:rocket-launch
+        hide_state: true
         tap_action:
           action: perform-action
           perform_action: button.press
