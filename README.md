@@ -77,12 +77,6 @@ Slot editors appear in the **Configuration** section of the device page;
 slots 4–7 stay hidden until used (enable them under *Settings → Entities*).
 Diagnostic extras (mesh indicator, filter switch) are disabled by default.
 
-> [!NOTE]
-> Installs created before v0.3.0 keep their original slot entity IDs
-> (`switch.intex_pool_schedule_1`, `time.intex_pool_schedule_1_start`,
-> `number.intex_pool_schedule_1_duration`). Check *Settings → Devices &
-> Services → Entities* for the IDs on your system.
-
 ## Schedules
 
 Each of the 7 slots holds either a **repeating timer** (start + duration +
@@ -192,11 +186,6 @@ entities:
   - entity: text.intex_pool_slot_2_days
     name: Days
 ```
-
-> [!TIP]
-> On pre-0.3.0 installs replace `slot_1`/`slot_2` with `schedule_1`/
-> `schedule_2` and `_hours` with `_duration` for the switch, time and
-> number entities (the `days` text entities always use `slot_N`).
 
 ## Protocol reference
 
