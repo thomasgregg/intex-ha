@@ -71,6 +71,7 @@ Polling intervals are adjustable via the integration's *Configure* dialog
 | `number.intex_pool_slot_N_hours` | Slot run time (1–48 h) |
 | `text.intex_pool_slot_N_days` | Repeat days: `daily`, `once` (FP) or `mon,wed,fri` |
 | `button.intex_pool_start_fp` | Start a one-time FP run (~2 min from now) |
+| `button.intex_pool_refresh` | Force an immediate re-poll (local + cloud) |
 | `number.intex_pool_start_fp_hours` | Duration for the Start FP button |
 
 Slot editors appear in the **Configuration** section of the device page;

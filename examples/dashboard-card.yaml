@@ -18,6 +18,15 @@ cards:
       - type: tile
         entity: binary_sensor.intex_pool_problem
         name: Health
+      - type: tile
+        entity: button.intex_pool_refresh
+        name: Refresh
+        hide_state: true
+        tap_action:
+          action: perform-action
+          perform_action: button.press
+          target:
+            entity_id: button.intex_pool_refresh
   - type: horizontal-stack
     cards:
       - type: tile
