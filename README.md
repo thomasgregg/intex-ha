@@ -127,6 +127,41 @@ data:
 attributes contain the decoded slots, human-readable summaries and the raw
 base64 blob.
 
+## Notification automations
+
+Alert when the pump raises an alarm code (E93, …):
+
+```yaml
+alias: Pool pump alarm
+triggers:
+  - trigger: state
+    entity_id: binary_sensor.intex_pool_problem
+    to: "on"
+actions:
+  - action: notify.notify   # or your mobile_app service
+    data:
+      title: "Pool pump problem"
+      message: >-
+        The pump reports
+        {{ state_attr('binary_sensor.intex_pool_problem', 'code') }}.
+```
+
+Alert when the pump drops off Wi-Fi (unreachable on the LAN for 5 minutes):
+
+```yaml
+alias: Pool pump offline
+triggers:
+  - trigger: state
+    entity_id: binary_sensor.intex_pool_problem
+    to: "unavailable"
+    for: "00:05:00"
+actions:
+  - action: notify.notify
+    data:
+      title: "Pool pump offline"
+      message: "The pump has been unreachable for 5 minutes."
+```
+
 ## Dashboard card
 
 Device pages are utilitarian; for a nicer pool card, paste this into a
