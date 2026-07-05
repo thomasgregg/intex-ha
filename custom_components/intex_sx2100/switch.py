@@ -1,4 +1,4 @@
-"""Pump switch (local DP 104)."""
+"""Switches: pump (local DP 104) and schedule slot enable (cloud)."""
 from __future__ import annotations
 
 from typing import Any
@@ -10,8 +10,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import IntexConfigEntry
 from .const import CONF_DEVICE_ID, DP_PUMP
-from .coordinator import PumpCoordinator
+from .coordinator import PumpCoordinator, ScheduleCoordinator
 from .entity import device_info
+from .schedule import SLOT_COUNT, summarize
 
 
 async def async_setup_entry(
@@ -19,10 +20,15 @@ async def async_setup_entry(
     entry: IntexConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the pump switch."""
-    async_add_entities(
-        [PumpSwitch(entry.runtime_data.pump, entry.data[CONF_DEVICE_ID])]
-    )
+    """Set up the pump switch and, with cloud access, slot enable switches."""
+    device_id = entry.data[CONF_DEVICE_ID]
+    entities: list[SwitchEntity] = [PumpSwitch(entry.runtime_data.pump, device_id)]
+    if (schedules := entry.runtime_data.schedules) is not None:
+        slots = (schedules.data or {}).get("slots") or []
+        entities.extend(
+            SlotEnableSwitch(schedules, device_id, i, slots) for i in range(SLOT_COUNT)
+        )
+    async_add_entities(entities)
 
 
 class PumpSwitch(CoordinatorEntity[PumpCoordinator], SwitchEntity):
@@ -48,3 +54,47 @@ class PumpSwitch(CoordinatorEntity[PumpCoordinator], SwitchEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self.coordinator.async_set_pump(False)
+
+
+class SlotEnableSwitch(CoordinatorEntity[ScheduleCoordinator], SwitchEntity):
+    """Enable/disable one of the 7 skdl_filter schedule slots."""
+
+    _attr_has_entity_name = True
+    _attr_icon = "mdi:calendar-clock"
+
+    def __init__(
+        self,
+        coordinator: ScheduleCoordinator,
+        device_id: str,
+        index: int,
+        slots: list[dict[str, Any]],
+    ) -> None:
+        super().__init__(coordinator)
+        self._index = index
+        self._attr_name = f"Schedule {index + 1}"
+        self._attr_unique_id = f"{device_id}_schedule_{index + 1}_enabled"
+        self._attr_device_info = device_info(device_id)
+        active = index < len(slots) and bool(slots[index].get("active"))
+        self._attr_entity_registry_enabled_default = active or index < 3
+
+    def _slot(self) -> dict[str, Any] | None:
+        slots = (self.coordinator.data or {}).get("slots")
+        return slots[self._index] if slots and self._index < len(slots) else None
+
+    @property
+    def is_on(self) -> bool | None:
+        slot = self._slot()
+        return None if slot is None else bool(slot.get("on"))
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        slot = self._slot()
+        if slot is None:
+            return None
+        return {"summary": summarize(slot), **{k: slot[k] for k in ("hour", "minute", "duration", "days")}}
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self.coordinator.async_update_slot(self._index, enabled=True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self.coordinator.async_update_slot(self._index, enabled=False)

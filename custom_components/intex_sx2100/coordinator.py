@@ -90,6 +90,39 @@ class ScheduleCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             raise UpdateFailed(f"{type(err).__name__}: {err}") from err
         return {"raw": raw, "slots": schedule.decode_schedules(raw)}
 
+    async def async_update_slot(
+        self,
+        index: int,
+        *,
+        enabled: bool | None = None,
+        hour: int | None = None,
+        minute: int | None = None,
+        duration: int | None = None,
+        days: int | None = None,
+        clear: bool = False,
+    ) -> None:
+        """Update one slot with sensible defaults for previously-empty slots."""
+        slots = (self.data or {}).get("slots") or schedule.decode_schedules(None)
+        new = schedule.set_slot(
+            slots,
+            index,
+            enabled=enabled,
+            hour=hour,
+            minute=minute,
+            duration=duration,
+            days=days,
+            clear=clear,
+        )
+        rec = new[index]
+        if not clear and rec.get("active"):
+            # An empty slot being brought to life needs a repeat mask and a
+            # non-zero worktime, or the pump ignores it.
+            if not rec.get("days"):
+                rec["days"] = schedule.DAYS_EVERY
+            if enabled and not rec.get("duration"):
+                rec["duration"] = 1
+        await self.async_write_slots(new)
+
     async def async_write_slots(self, slots: list[dict[str, Any]]) -> None:
         """Write slots back. Serialized + optimistic: the cloud takes a few
         seconds to reflect a write, and a second edit inside that window would

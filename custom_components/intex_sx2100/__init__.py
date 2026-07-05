@@ -16,7 +16,6 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 
-from . import schedule
 from .const import (
     CONF_CLOUD_CLIENT_ID,
     CONF_CLOUD_CLIENT_SECRET,
@@ -37,7 +36,7 @@ from .tuya import CloudClient, LocalPump, TuyaError
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = [Platform.SENSOR, Platform.SWITCH]
+PLATFORMS = [Platform.NUMBER, Platform.SENSOR, Platform.SWITCH, Platform.TIME]
 
 
 @dataclass
@@ -143,10 +142,7 @@ def _register_services(hass: HomeAssistant) -> None:
         return
 
     async def set_slot(call: ServiceCall) -> None:
-        coordinator = _schedule_coordinator(hass)
-        slots = (coordinator.data or {}).get("slots") or schedule.decode_schedules(None)
-        new = schedule.set_slot(
-            slots,
+        await _schedule_coordinator(hass).async_update_slot(
             call.data["slot"] - 1,
             enabled=call.data.get("enabled"),
             hour=call.data.get("hour"),
@@ -154,13 +150,11 @@ def _register_services(hass: HomeAssistant) -> None:
             duration=call.data.get("duration"),
             days=call.data.get("days"),
         )
-        await coordinator.async_write_slots(new)
 
     async def clear_slot(call: ServiceCall) -> None:
-        coordinator = _schedule_coordinator(hass)
-        slots = (coordinator.data or {}).get("slots") or schedule.decode_schedules(None)
-        new = schedule.set_slot(slots, call.data["slot"] - 1, clear=True)
-        await coordinator.async_write_slots(new)
+        await _schedule_coordinator(hass).async_update_slot(
+            call.data["slot"] - 1, clear=True
+        )
 
     hass.services.async_register(
         DOMAIN, SERVICE_SET_SCHEDULE_SLOT, set_slot, schema=SET_SLOT_SCHEMA

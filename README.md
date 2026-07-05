@@ -18,6 +18,12 @@ Tuya abstraction — just this pump.
 | `sensor.intex_pool_alarm` | DP 127 (local) | `normal` / `E93` / … |
 | `sensor.intex_pool_timer_or_remaining` | DP 114 (local) | Timer / remaining numeric |
 | `sensor.intex_pool_schedule` | `skdl_filter` (cloud, optional) | Active timer slots (details in attributes) |
+| `switch.intex_pool_schedule_N` | `skdl_filter` (cloud, optional) | Enable/disable slot N (1-7) |
+| `time.intex_pool_schedule_N_start` | `skdl_filter` (cloud, optional) | Start time of slot N |
+| `number.intex_pool_schedule_N_duration` | `skdl_filter` (cloud, optional) | Run time of slot N in hours |
+
+Slot entities for slots 4-7 are disabled by default unless the slot is in
+use — enable them under *Settings → Devices & Services → Entities* if needed.
 
 Other observed DPs (106 bool, 110 numeric, 119 bool) are unknown and not
 exposed yet.
