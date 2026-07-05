@@ -1,0 +1,39 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Intex SX2100 Pool Pump",
+        "description": "Local control requires the device ID, local key and IP address (find them with `tinytuya wizard`). Cloud credentials from iot.tuya.com are optional and only needed for schedule (skdl_filter) support.",
+        "data": {
+          "host": "IP address",
+          "device_id": "Device ID",
+          "local_key": "Local key",
+          "cloud_region": "Tuya cloud region",
+          "cloud_client_id": "Tuya cloud client ID (optional)",
+          "cloud_client_secret": "Tuya cloud client secret (optional)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach the pump. Check the IP address and that the pump is powered.",
+      "invalid_auth": "The pump rejected the local key. Re-check it (it rotates when the device is re-paired in the app).",
+      "cloud_incomplete": "Provide both cloud client ID and secret, or neither.",
+      "cloud_invalid_auth": "Tuya cloud rejected the client ID/secret.",
+      "cloud_cannot_connect": "Could not reach the Tuya cloud."
+    },
+    "abort": {
+      "already_configured": "This pump is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Polling intervals",
+        "data": {
+          "local_interval": "Local poll interval (seconds)",
+          "cloud_interval": "Cloud schedule poll interval (seconds)"
+        }
+      }
+    }
+  }
+}

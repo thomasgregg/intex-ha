@@ -1,0 +1,69 @@
+set_schedule_slot:
+  name: Set schedule slot
+  description: >-
+    Update one of the pump's 7 internal timer slots (skdl_filter). Only the
+    fields you provide are changed. Requires Tuya cloud credentials.
+  fields:
+    slot:
+      name: Slot
+      description: Slot number (1-7).
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 7
+          mode: box
+    enabled:
+      name: Enabled
+      description: Whether the timed run is enabled.
+      selector:
+        boolean:
+    hour:
+      name: Hour
+      description: Start hour (0-23).
+      selector:
+        number:
+          min: 0
+          max: 23
+          mode: box
+    minute:
+      name: Minute
+      description: Start minute (0-59).
+      selector:
+        number:
+          min: 0
+          max: 59
+          mode: box
+    duration:
+      name: Duration
+      description: Run time in hours (1-24).
+      selector:
+        number:
+          min: 1
+          max: 24
+          unit_of_measurement: h
+          mode: box
+    days:
+      name: Days bitmask
+      description: >-
+        Week bitmask. 255 = repeat every day (recommended). Advanced values
+        follow the Tuya thing-model week byte.
+      selector:
+        number:
+          min: 0
+          max: 255
+          mode: box
+
+clear_schedule_slot:
+  name: Clear schedule slot
+  description: Erase one of the pump's 7 internal timer slots (skdl_filter).
+  fields:
+    slot:
+      name: Slot
+      description: Slot number (1-7).
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 7
+          mode: box
