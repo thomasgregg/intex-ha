@@ -60,7 +60,7 @@ Polling intervals are adjustable via the integration's *Configure* dialog
 | Entity | Description |
 |---|---|
 | `switch.intex_pool_pump` | Filtration on/off |
-| `sensor.intex_pool_status` | `working` / `FP_mode` / `sleep` / `boost` |
+| `sensor.intex_pool_mode` | Pump mode: `Normal cycle` / `FP run` / `Sleep` / `Boost` (mode, not motor activity — the pump switch shows on/off) |
 | `sensor.intex_pool_alarm` | `normal` / `E93` / `DIRTY` / `unnormal` |
 | `sensor.intex_pool_error_code` | Decoded error bitmap, e.g. `E93` |
 | `sensor.intex_pool_working_time` | Runtime counter (0–250 h) |
@@ -159,8 +159,8 @@ title: Pool Pump
 entities:
   - entity: switch.intex_pool_pump
     name: Pump
-  - entity: sensor.intex_pool_status
-    name: Status
+  - entity: sensor.intex_pool_mode
+    name: Mode
   - entity: binary_sensor.intex_pool_problem
     name: Health
   - type: divider

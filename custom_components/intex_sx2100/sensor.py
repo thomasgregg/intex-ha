@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 from homeassistant.components.sensor import (
+    SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
 )
@@ -35,7 +36,7 @@ async def async_setup_entry(
     device_id = entry.data[CONF_DEVICE_ID]
     pump = entry.runtime_data.pump
     entities: list[SensorEntity] = [
-        DpSensor(pump, device_id, "Status", DP_STATE, "mdi:pump"),
+        ModeSensor(pump, device_id),
         DpSensor(pump, device_id, "Alarm", DP_ALARM, "mdi:alert-circle-outline"),
         ErrorCodeSensor(pump, device_id),
         WorkingTimeSensor(pump, device_id),
@@ -68,6 +69,39 @@ class DpSensor(CoordinatorEntity[PumpCoordinator], SensorEntity):
     @property
     def native_value(self) -> Any:
         return (self.coordinator.data or {}).get(self._dp)
+
+
+class ModeSensor(DpSensor):
+    """working_indicator (DP 125) as an honest label.
+
+    The DP reports the pump's *mode*, not motor activity — ``working`` means
+    "in the normal cycle program" even while idle between schedules. The raw
+    value stays available as an attribute for automations.
+    """
+
+    MODES = {
+        "working": "Normal cycle",
+        "FP_mode": "FP run",
+        "sleep": "Sleep",
+        "boost": "Boost",
+    }
+
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = [*MODES.values(), "unknown"]
+
+    def __init__(self, coordinator: PumpCoordinator, device_id: str) -> None:
+        super().__init__(coordinator, device_id, "Mode", DP_STATE, "mdi:pump")
+
+    @property
+    def native_value(self) -> str | None:
+        raw = (self.coordinator.data or {}).get(self._dp)
+        if raw is None:
+            return None
+        return self.MODES.get(raw, "unknown")
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {"raw": (self.coordinator.data or {}).get(self._dp)}
 
 
 class ErrorCodeSensor(DpSensor):
