@@ -1,6 +1,4 @@
-<img src="custom_components/intex_sx2100/brand/icon.png" width="96" align="right" alt="Intex SX2100 icon" />
-
-# Intex SX2100 Pool Pump for Home Assistant
+# <img src="custom_components/intex_sx2100/brand/icon.png" width="40" alt="" valign="middle" /> Intex SX2100 Pool Pump for Home Assistant
 
 [![GitHub Release](https://img.shields.io/github/v/release/thomasgregg/intex-ha)](https://github.com/thomasgregg/intex-ha/releases)
 [![Validate](https://github.com/thomasgregg/intex-ha/actions/workflows/validate.yml/badge.svg)](https://github.com/thomasgregg/intex-ha/actions/workflows/validate.yml)
