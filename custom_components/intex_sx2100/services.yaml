@@ -46,8 +46,10 @@ set_schedule_slot:
     days:
       name: Days bitmask
       description: >-
-        Week bitmask. 255 = repeat every day (recommended). Advanced values
-        follow the Tuya thing-model week byte.
+        Week byte (live-verified): 255 = every day, 0 = one-time FP entry.
+        Otherwise 128 (repeat flag) + Mon 64, Tue 32, Wed 16, Thu 8, Fri 4,
+        Sat 2, Sun 1 — e.g. Mon+Wed+Fri = 128+64+16+4 = 212. Tip: the
+        per-slot "days" text entity accepts "daily" or "mon,wed,fri" instead.
       selector:
         number:
           min: 0

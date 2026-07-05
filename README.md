@@ -21,6 +21,7 @@ Tuya abstraction — just this pump.
 | `switch.intex_pool_slot_N` | `skdl_filter` (cloud, optional) | Enable/disable slot N (1-7) |
 | `time.intex_pool_slot_N_start` | `skdl_filter` (cloud, optional) | Start time of slot N |
 | `number.intex_pool_slot_N_hours` | `skdl_filter` (cloud, optional) | Run time of slot N in hours (1-48) |
+| `text.intex_pool_slot_N_days` | `skdl_filter` (cloud, optional) | Repeat days: `daily`, `once` (FP) or `mon,wed,fri` |
 
 The slot editors are **configuration entities** — they appear in the
 *Configuration* section of the device page, keeping *Controls* to just the
@@ -152,6 +153,19 @@ DP 125: state              working / FP_mode / sleep
 DP 127: alarm              normal / E93
 DP 114: timer/remaining    numeric
 ```
+
+Week byte of a schedule slot (live-verified Mon-only -> 192, Wed-only -> 144):
+
+```text
+bit 7 (128) = weekly-repeat flag
+bit 6 (64)  = Mon    bit 5 (32) = Tue    bit 4 (16) = Wed    bit 3 (8) = Thu
+bit 2 (4)   = Fri    bit 1 (2)  = Sat    bit 0 (1)  = Sun
+255 = every day · 0 = dated one-time FP entry
+```
+
+Note: creating a *new* FP entry (setting days to `once`) reuses whatever
+month/date bytes the slot already holds — set the date via the Intex app,
+or use the `set_schedule_slot` service.
 
 Each poll and command uses a fresh, non-persistent socket — persistent
 sockets were observed to serve stale DP values and swallow commands.

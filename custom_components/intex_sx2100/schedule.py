@@ -23,6 +23,47 @@ SLOT_SIZE = 8
 FIELDS = ("month", "date", "hour", "minute", "duration", "days", "on", "pad")
 DAYS_EVERY = 0xFF
 
+# Week byte layout, live-verified against the AGP SAND FILTER PUMP R1
+# (Mon-only -> 192, Wed-only -> 144, every day -> 255):
+# bit 7 = weekly-repeat flag, bit 6 = Mon ... bit 0 = Sun.
+REPEAT_FLAG = 0x80
+DAY_BITS = {
+    "mon": 0x40,
+    "tue": 0x20,
+    "wed": 0x10,
+    "thu": 0x08,
+    "fri": 0x04,
+    "sat": 0x02,
+    "sun": 0x01,
+}
+
+
+def days_to_text(days: int) -> str:
+    """Render the week byte: ``once`` (FP), ``daily``, or ``mon,wed,fri``."""
+    days = int(days) & 0xFF
+    if days == 0:
+        return "once"
+    if days == DAYS_EVERY:
+        return "daily"
+    return ",".join(name for name, bit in DAY_BITS.items() if days & bit)
+
+
+def text_to_days(text: str) -> int:
+    """Parse ``once`` / ``daily`` / ``mon,wed`` back into the week byte."""
+    cleaned = text.strip().lower()
+    if cleaned in ("once", ""):
+        return 0
+    if cleaned == "daily":
+        return DAYS_EVERY
+    days = REPEAT_FLAG
+    for token in cleaned.replace(" ", "").split(","):
+        if token not in DAY_BITS:
+            raise ValueError(
+                f"unknown day '{token}' — use once, daily, or e.g. mon,wed,fri"
+            )
+        days |= DAY_BITS[token]
+    return days
+
 
 def decode_schedules(b64: str | None) -> list[dict[str, Any]]:
     """Decode the base64 blob into exactly 7 slot dicts (never raises)."""
@@ -61,13 +102,14 @@ def mode_of(slot: dict[str, Any]) -> str:
 def summarize(slot: dict[str, Any]) -> str:
     """One-liner like ``Daily 20:50 · 1h · off`` or ``07-04 09:00 · 48h · FP · off``."""
     h, m = int(slot.get("hour", 0)), int(slot.get("minute", 0))
-    if slot.get("days") == DAYS_EVERY:
+    days = int(slot.get("days", 0))
+    if days == DAYS_EVERY:
         when = f"Daily {h:02d}:{m:02d}"
-    elif slot.get("days"):
-        when = f"Weekly({int(slot['days']) & 0x7F:07b}) {h:02d}:{m:02d}"
+    elif days:
+        when = f"{days_to_text(days).title()} {h:02d}:{m:02d}"
     else:
         when = f"{int(slot.get('month', 0)):02d}-{int(slot.get('date', 0)):02d} {h:02d}:{m:02d}"
-    fp = "" if slot.get("days") else " · FP"
+    fp = "" if days else " · FP"
     state = "on" if slot.get("on") else "off"
     return f"{when} · {int(slot.get('duration', 0))}h{fp} · {state}"
 

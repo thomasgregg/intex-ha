@@ -36,7 +36,13 @@ from .tuya import CloudClient, LocalPump, TuyaError
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = [Platform.NUMBER, Platform.SENSOR, Platform.SWITCH, Platform.TIME]
+PLATFORMS = [
+    Platform.NUMBER,
+    Platform.SENSOR,
+    Platform.SWITCH,
+    Platform.TEXT,
+    Platform.TIME,
+]
 
 
 @dataclass
