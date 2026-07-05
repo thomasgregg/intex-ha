@@ -22,6 +22,16 @@ Tuya abstraction — just this pump.
 | `time.intex_pool_slot_N_start` | `skdl_filter` (cloud, optional) | Start time of slot N |
 | `number.intex_pool_slot_N_hours` | `skdl_filter` (cloud, optional) | Run time of slot N in hours (1-48) |
 | `text.intex_pool_slot_N_days` | `skdl_filter` (cloud, optional) | Repeat days: `daily`, `once` (FP) or `mon,wed,fri` |
+| `button.intex_pool_start_fp` | `skdl_filter` (cloud, optional) | Start a one-time FP run (~2 min from now) |
+| `number.intex_pool_fp_hours` | — | Duration for the Start FP button (1-48 h, default 24) |
+
+**Start FP** writes a dated one-time entry into the first free slot,
+starting about two minutes after the press, for "FP hours" hours — the
+pump filters continuously, then returns to the normal program (like the
+app's FP mode: shock treatment, cloudy water, heat waves). If all 7 slots
+are occupied the press fails with a message; clear a slot first. The FP
+entry stays in the slot afterwards (disabled) until reused or cleared,
+matching the app's behavior.
 
 The slot editors are **configuration entities** — they appear in the
 *Configuration* section of the device page, keeping *Controls* to just the

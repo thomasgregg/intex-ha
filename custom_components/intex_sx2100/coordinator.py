@@ -8,8 +8,9 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from . import schedule
 from .const import DP_PUMP, SCHEDULE_CODE
@@ -76,6 +77,9 @@ class ScheduleCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.cloud = cloud
         self.device_id = device_id
         self._write_lock = asyncio.Lock()
+        # Target duration for the "Start FP" button, set by the FP hours
+        # number entity (restored across restarts there).
+        self.fp_hours: int = 24
 
     async def _async_update_data(self) -> dict[str, Any]:
         try:
@@ -124,6 +128,33 @@ class ScheduleCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 rec["days"] = schedule.DAYS_EVERY
             if not rec.get("duration"):
                 rec["duration"] = 1
+        await self.async_write_slots(new)
+
+    async def async_start_fp(self) -> None:
+        """Write a one-time FP entry into a free slot, starting in ~2 minutes.
+
+        Mirrors the app's FP mode: dated entry, days == 0, enabled, duration
+        up to 48 h. The pump runs it once, then returns to the normal cycle.
+        """
+        slots = (self.data or {}).get("slots") or schedule.decode_schedules(None)
+        try:
+            index = next(i for i, s in enumerate(slots) if not s.get("active"))
+        except StopIteration:
+            raise HomeAssistantError(
+                "All 7 schedule slots are in use — clear one first"
+            ) from None
+        start = dt_util.now() + timedelta(minutes=2)
+        new = schedule.set_slot(
+            slots,
+            index,
+            enabled=True,
+            month=start.month,
+            date=start.day,
+            hour=start.hour,
+            minute=start.minute,
+            duration=max(1, min(int(self.fp_hours), 48)),
+            days=0,
+        )
         await self.async_write_slots(new)
 
     async def async_write_slots(self, slots: list[dict[str, Any]]) -> None:

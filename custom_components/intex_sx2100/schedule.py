@@ -146,6 +146,8 @@ def set_slot(
     minute: int | None = None,
     duration: int | None = None,
     days: int | None = None,
+    month: int | None = None,
+    date: int | None = None,
     clear: bool = False,
 ) -> list[dict[str, Any]]:
     """Return a new 7-slot list with slot *index* updated (or cleared)."""
@@ -162,6 +164,8 @@ def set_slot(
         ("minute", minute),
         ("duration", duration),
         ("days", days),
+        ("month", month),
+        ("date", date),
     ):
         if val is not None:
             rec[key] = int(val) & 0xFF
