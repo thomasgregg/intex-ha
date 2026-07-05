@@ -14,7 +14,7 @@ CONF_CLOUD_CLIENT_SECRET = "cloud_client_secret"
 OPT_LOCAL_INTERVAL = "local_interval"
 OPT_CLOUD_INTERVAL = "cloud_interval"
 DEFAULT_LOCAL_INTERVAL = 15  # seconds
-DEFAULT_CLOUD_INTERVAL = 300  # seconds
+DEFAULT_CLOUD_INTERVAL = 900  # seconds — schedules rarely change; spare the cloud API quota
 
 # The only protocol version this pump answers on (3.3 -> Err 904, 3.4 -> Err 914).
 PROTOCOL_VERSION = 3.5

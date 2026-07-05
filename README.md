@@ -52,6 +52,15 @@ Without them the integration is fully local and simply has no schedule
 entities. The pump's internal timer program (`skdl_filter`) exists only in
 the Tuya cloud — it is never reported on the LAN.
 
+## Polling
+
+The pump is polled **locally** every 15 s (no cloud involved, no API quota).
+The cloud schedule blob is polled every **15 minutes** by default — schedules
+rarely change outside HA, and this keeps well within Tuya's free-tier API
+limits. After you edit a slot there is a single extra read ~5 s later to
+confirm the write. Both intervals are configurable under
+*Settings → Devices & Services → Intex SX2100 Pool Pump → Configure*.
+
 ## Schedule services
 
 The `skdl_filter` program has 7 slots of 8 bytes

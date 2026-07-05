@@ -127,7 +127,7 @@ class IntexOptionsFlow(OptionsFlow):
                     vol.Required(
                         OPT_CLOUD_INTERVAL,
                         default=options.get(OPT_CLOUD_INTERVAL, DEFAULT_CLOUD_INTERVAL),
-                    ): vol.All(vol.Coerce(int), vol.Range(min=60, max=3600)),
+                    ): vol.All(vol.Coerce(int), vol.Range(min=60, max=86400)),
                 }
             ),
         )
