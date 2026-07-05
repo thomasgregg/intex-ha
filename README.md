@@ -102,8 +102,8 @@ as the optional *cloud client ID / secret* to enable schedules.
 > Re-pairing the pump in the app rotates the local key — if local control
 > suddenly fails with an auth error, re-run the wizard to get the new key.
 
-Prefer clicking to the command line? The same values are on the Tuya site:
-*Cloud* → your project → *Devices* → *Device List* → your pump shows the
+Prefer a web UI over the command line? The same values are on the Tuya
+site: *Cloud* → your project → *Devices* → *Device List* shows each pump's
 Device ID, and *Cloud* → *API Explorer* → *Query Device Details Info*
 returns the `local_key`.
 
