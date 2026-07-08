@@ -5,20 +5,22 @@
 # Each slot is also wrapped in a conditional card, so only slots in use appear.
 type: vertical-stack
 cards:
-  - type: tile
-    entity: switch.intex_pool_pump
-    name: Pool Pump
-    icon: mdi:pump
-    features:
-      - type: toggle
+  - type: horizontal-stack
+    cards:
+      - type: tile
+        entity: switch.intex_pool_pump
+        name: Pool Pump
+        icon: mdi:pump
+        features:
+          - type: toggle
+      - type: tile
+        entity: sensor.intex_pool_working_time
+        name: Time remaining
   - type: horizontal-stack
     cards:
       - type: tile
         entity: sensor.intex_pool_mode
         name: Mode
-      - type: tile
-        entity: sensor.intex_pool_working_time
-        name: Time left
       - type: tile
         entity: binary_sensor.intex_pool_problem
         name: Health
