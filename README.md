@@ -115,7 +115,7 @@ returns the `local_key`.
 | `sensor.intex_pool_mode` | Pump mode: `Normal cycle` / `FP run` / `Sleep` / `Boost` (mode, not motor activity — the pump switch shows on/off) |
 | `sensor.intex_pool_alarm` | `normal` / `E93` / `DIRTY` / `unnormal` |
 | `sensor.intex_pool_error_code` | Decoded fault code, e.g. `E90`; `none` when healthy (E93 standby is not a fault) |
-| `sensor.intex_pool_working_time` | Runtime counter (0–250 h) |
+| `sensor.intex_pool_working_time` | Hours remaining in the current run (matches the app; 0 when idle) |
 | `binary_sensor.intex_pool_problem` | On for real faults/errors — automation-ready (ignores `E93` standby) |
 | `sensor.intex_pool_schedule` | Active timer slots, decoded details in attributes |
 | `switch.intex_pool_slot_N` | Enable/disable schedule slot N (1–7) |

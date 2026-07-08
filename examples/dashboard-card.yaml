@@ -17,6 +17,9 @@ cards:
         entity: sensor.intex_pool_mode
         name: Mode
       - type: tile
+        entity: sensor.intex_pool_working_time
+        name: Time left
+      - type: tile
         entity: binary_sensor.intex_pool_problem
         name: Health
       - type: tile

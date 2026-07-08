@@ -138,14 +138,19 @@ class ErrorCodeSensor(DpSensor):
 
 
 class WorkingTimeSensor(DpSensor):
-    """working_time (DP 110): runtime counter in hours (0-250)."""
+    """DP 110 (Tuya ``working_time``): hours remaining in the current run.
+
+    Matches the app's "remaining time"; reads 0 while idle. Named accordingly;
+    the unique_id is unchanged so existing installs keep the entity.
+    """
 
     _attr_native_unit_of_measurement = UnitOfTime.HOURS
+    _attr_device_class = SensorDeviceClass.DURATION
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, coordinator: PumpCoordinator, device_id: str) -> None:
         super().__init__(
-            coordinator, device_id, "Working time", DP_WORKING_TIME, "mdi:timer-sync-outline"
+            coordinator, device_id, "Time remaining", DP_WORKING_TIME, "mdi:timer-sand"
         )
 
 
