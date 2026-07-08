@@ -26,10 +26,14 @@ from .entity import device_info
 # Full warntype_indicator enum per the pump's thing model.
 KNOWN_ALARMS = {
     "normal": "no alarm",
-    "E93": "pump error E93",
+    "E93": "standby / power-saving (normal — idle between scheduled runs)",
     "DIRTY": "filter dirty — clean or backwash the sand filter",
     "unnormal": "device reports a fault",
 }
+
+# Warntype values that are NOT faults — the pump reports these while healthy.
+# E93 is Intex's standby / power-saving state, not an error.
+NON_FAULT_ALARMS = frozenset({"normal", "E93"})
 
 
 async def async_setup_entry(
@@ -62,7 +66,8 @@ class ProblemSensor(CoordinatorEntity[PumpCoordinator], BinarySensorEntity):
         bitmap = data.get(DP_ERROR_BITMAP)
         if alarm is None and bitmap is None:
             return None
-        return (alarm not in (None, "normal")) or bool(bitmap)
+        alarm_fault = alarm is not None and alarm not in NON_FAULT_ALARMS
+        return alarm_fault or bool(bitmap)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

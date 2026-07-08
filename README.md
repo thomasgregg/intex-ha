@@ -116,7 +116,7 @@ returns the `local_key`.
 | `sensor.intex_pool_alarm` | `normal` / `E93` / `DIRTY` / `unnormal` |
 | `sensor.intex_pool_error_code` | Decoded error bitmap, e.g. `E93` |
 | `sensor.intex_pool_working_time` | Runtime counter (0–250 h) |
-| `binary_sensor.intex_pool_problem` | On for any alarm or error — automation-ready |
+| `binary_sensor.intex_pool_problem` | On for real faults/errors — automation-ready (ignores `E93` standby) |
 | `sensor.intex_pool_schedule` | Active timer slots, decoded details in attributes |
 | `switch.intex_pool_slot_N` | Enable/disable schedule slot N (1–7) |
 | `time.intex_pool_slot_N_start` | Slot start time |
@@ -274,6 +274,8 @@ DP 115: skdl_filter        rw raw — schedule blob (cloud-only)
 DP 119: mesh_indicator     ro bool
 DP 125: working_indicator  enum: working / FP_mode / sleep / boost
 DP 127: warntype_indicator enum: normal / E93 / DIRTY / unnormal
+        (E93 = standby / power-saving, NOT a fault; DIRTY = clean the
+        filter; other non-normal values and any error_code bit = fault)
 ```
 
 Each poll and command uses a fresh, non-persistent socket — persistent
