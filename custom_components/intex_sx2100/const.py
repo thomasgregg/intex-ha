@@ -38,13 +38,27 @@ ERROR_BIT_LABELS = [
 ]
 
 
+# Codes that are NOT faults. E93 is Intex's standby / power-saving state; it
+# appears both in warntype_indicator (127) and as a bit in error_code (114)
+# while the pump idles between scheduled runs.
+NON_FAULT_CODES = frozenset({"E93"})
+
+
 def decode_error_bits(value: int) -> list[str]:
-    """Decode the error_code bitmap into app-style codes, e.g. [1] -> ['E80']."""
+    """Decode the error_code bitmap into app-style codes, e.g. [1] -> ['E80'].
+
+    Faithful decode of every set bit, including the non-fault E93 standby bit.
+    """
     return [
         f"E{int(label) - 100}"
         for i, label in enumerate(ERROR_BIT_LABELS)
         if value >> i & 1
     ]
+
+
+def fault_codes(value: int) -> list[str]:
+    """Like ``decode_error_bits`` but excludes non-fault codes (E93 standby)."""
+    return [c for c in decode_error_bits(value) if c not in NON_FAULT_CODES]
 
 # Cloud-only schedule property (the pump's internal timer program)
 SCHEDULE_CODE = "skdl_filter"

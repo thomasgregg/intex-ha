@@ -114,7 +114,7 @@ returns the `local_key`.
 | `switch.intex_pool_pump` | Filtration on/off |
 | `sensor.intex_pool_mode` | Pump mode: `Normal cycle` / `FP run` / `Sleep` / `Boost` (mode, not motor activity — the pump switch shows on/off) |
 | `sensor.intex_pool_alarm` | `normal` / `E93` / `DIRTY` / `unnormal` |
-| `sensor.intex_pool_error_code` | Decoded error bitmap, e.g. `E93` |
+| `sensor.intex_pool_error_code` | Decoded fault code, e.g. `E90`; `none` when healthy (E93 standby is not a fault) |
 | `sensor.intex_pool_working_time` | Runtime counter (0–250 h) |
 | `binary_sensor.intex_pool_problem` | On for real faults/errors — automation-ready (ignores `E93` standby) |
 | `sensor.intex_pool_schedule` | Active timer slots, decoded details in attributes |

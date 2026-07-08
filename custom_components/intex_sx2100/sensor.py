@@ -21,6 +21,7 @@ from .const import (
     DP_STATE,
     DP_WORKING_TIME,
     decode_error_bits,
+    fault_codes,
 )
 from .coordinator import PumpCoordinator, ScheduleCoordinator
 from .entity import device_info
@@ -105,11 +106,12 @@ class ModeSensor(DpSensor):
 
 
 class ErrorCodeSensor(DpSensor):
-    """Decoded error_code bitmap (DP 114): ``none`` or e.g. ``E93``.
+    """Decoded error_code bitmap (DP 114): ``none`` or e.g. ``E90``.
 
-    Keeps the original DP 114 unique_id, so installs that knew this DP as
-    "Timer or remaining" retain their entity (the label was wrong — the
-    thing model says it's the error bitmap).
+    Reports only genuine faults — the E93 standby bit is not an error, so it
+    reads ``none`` during standby. Keeps the original DP 114 unique_id, so
+    installs that knew this DP as "Timer or remaining" retain their entity
+    (the label was wrong — the thing model says it's the error bitmap).
     """
 
     def __init__(self, coordinator: PumpCoordinator, device_id: str) -> None:
@@ -122,13 +124,17 @@ class ErrorCodeSensor(DpSensor):
         raw = (self.coordinator.data or {}).get(self._dp)
         if raw is None:
             return None
-        codes = decode_error_bits(int(raw))
+        codes = fault_codes(int(raw))
         return ", ".join(codes) if codes else "none"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         raw = (self.coordinator.data or {}).get(self._dp)
-        return {"bitmap": raw, "active_errors": decode_error_bits(int(raw or 0))}
+        return {
+            "bitmap": raw,
+            "faults": fault_codes(int(raw or 0)),
+            "all_bits": decode_error_bits(int(raw or 0)),
+        }
 
 
 class WorkingTimeSensor(DpSensor):

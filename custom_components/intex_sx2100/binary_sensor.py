@@ -19,6 +19,7 @@ from .const import (
     DP_ERROR_BITMAP,
     DP_MESH,
     decode_error_bits,
+    fault_codes,
 )
 from .coordinator import PumpCoordinator
 from .entity import device_info
@@ -67,7 +68,8 @@ class ProblemSensor(CoordinatorEntity[PumpCoordinator], BinarySensorEntity):
         if alarm is None and bitmap is None:
             return None
         alarm_fault = alarm is not None and alarm not in NON_FAULT_ALARMS
-        return alarm_fault or bool(bitmap)
+        bitmap_fault = bool(fault_codes(int(bitmap or 0)))
+        return alarm_fault or bitmap_fault
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
