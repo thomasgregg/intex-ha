@@ -80,8 +80,8 @@ now appears under the project's devices.
 **4. Run the wizard.** On any computer with Python:
 
 ```bash
-pip install tinytuya
-python -m tinytuya wizard
+python3 -m pip install tinytuya
+python3 -m tinytuya wizard
 ```
 
 It asks for the **Access ID**, **Access Secret**, and a region (`eu`,
