@@ -122,12 +122,12 @@ returns the `local_key`.
 | `time.intex_pool_slot_N_start` | Slot start time |
 | `number.intex_pool_slot_N_hours` | Slot run time (1–48 h) |
 | `text.intex_pool_slot_N_days` | Repeat days: `daily`, `once` (FP) or `mon,wed,fri` |
-| `button.intex_pool_start_fp` | Start a one-time FP run (~2 min from now) |
+| `button.intex_pool_start_fp` | Start a one-time FP run (~1 min from now) |
 | `button.intex_pool_refresh` | Force an immediate re-poll (local + cloud) |
 | `number.intex_pool_start_fp_hours` | Duration for the Start FP button |
 
 Slot editors appear in the **Configuration** section of the device page;
-slots 4–7 stay hidden until used (enable them under *Settings → Entities*).
+all 7 slots are shown so FP runs and app-created schedules always appear.
 Diagnostic extras (mesh indicator, filter switch) are disabled by default.
 
 ## Schedules
@@ -147,8 +147,9 @@ once             dated one-time entry (FP)
 FP is the pump's "run long hours once, then return to the normal cycle"
 feature — up to 48 h of continuous filtration for shock treatments, cloudy
 water or heat waves. Set `number.intex_pool_start_fp_hours`, press
-`button.intex_pool_start_fp`, and the pump starts within ~2 minutes using
-the first free slot.
+`button.intex_pool_start_fp`, and the pump starts within ~1 minute. It uses
+the first free slot, or recycles a finished FP slot so repeated presses
+don't fill all 7 slots.
 
 ### Services
 

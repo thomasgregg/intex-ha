@@ -106,8 +106,7 @@ class SlotEnableSwitch(CoordinatorEntity[ScheduleCoordinator], SwitchEntity):
         self._attr_name = f"Slot {index + 1}"
         self._attr_unique_id = f"{device_id}_schedule_{index + 1}_enabled"
         self._attr_device_info = device_info(device_id)
-        active = index < len(slots) and bool(slots[index].get("active"))
-        self._attr_entity_registry_enabled_default = active or index < 3
+        self._attr_entity_registry_enabled_default = True
 
     def _slot(self) -> dict[str, Any] | None:
         slots = (self.coordinator.data or {}).get("slots")

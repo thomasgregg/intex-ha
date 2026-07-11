@@ -177,13 +177,24 @@ class ScheduleCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         async with self._write_lock:
             slots = await self._fresh_slots()
-            try:
-                index = next(i for i, s in enumerate(slots) if not s.get("active"))
-            except StopIteration:
+            # Prefer an empty slot; otherwise recycle a finished FP entry
+            # (dated one-time run, days == 0, no longer enabled) so repeated
+            # FP presses don't fill all 7 slots with stale entries.
+            def _free(s: dict[str, Any]) -> bool:
+                return not s.get("active")
+
+            def _spent_fp(s: dict[str, Any]) -> bool:
+                return not s.get("days") and not s.get("on") and s.get("active")
+
+            index = next(
+                (i for i, s in enumerate(slots) if _free(s)),
+                next((i for i, s in enumerate(slots) if _spent_fp(s)), None),
+            )
+            if index is None:
                 raise HomeAssistantError(
                     "All 7 schedule slots are in use — clear one first"
-                ) from None
-            start = dt_util.now() + timedelta(minutes=2)
+                )
+            start = dt_util.now() + timedelta(minutes=1)
             new = schedule.set_slot(
                 slots,
                 index,
