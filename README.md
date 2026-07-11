@@ -147,9 +147,9 @@ once             dated one-time entry (FP)
 FP is the pump's "run long hours once, then return to the normal cycle"
 feature — up to 48 h of continuous filtration for shock treatments, cloudy
 water or heat waves. Set `number.intex_pool_start_fp_hours`, press
-`button.intex_pool_start_fp`, and the pump starts within ~1 minute. It uses
-the first free slot, or recycles a finished FP slot so repeated presses
-don't fill all 7 slots.
+`button.intex_pool_start_fp`, and the pump starts within ~1 minute. Like the
+Intex app, FP always uses **slot 1** (the app's dedicated FP-mode slot), so
+your repeating schedules in the other slots are never touched.
 
 ### Services
 
