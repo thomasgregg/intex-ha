@@ -75,11 +75,11 @@ cards:
               name: Hours
             - entity: text.intex_pool_slot_1_days
               name: Days
-            - type: perform-action
+            - type: call-service
               name: Delete schedule
               icon: mdi:trash-can-outline
               action_name: Delete
-              perform_action: intex_sx2100.clear_schedule_slot
+              service: intex_sx2100.clear_schedule_slot
               data:
                 slot: 1
               confirmation:
@@ -107,11 +107,11 @@ cards:
               name: Hours
             - entity: text.intex_pool_slot_2_days
               name: Days
-            - type: perform-action
+            - type: call-service
               name: Delete schedule
               icon: mdi:trash-can-outline
               action_name: Delete
-              perform_action: intex_sx2100.clear_schedule_slot
+              service: intex_sx2100.clear_schedule_slot
               data:
                 slot: 2
               confirmation:
@@ -139,11 +139,11 @@ cards:
               name: Hours
             - entity: text.intex_pool_slot_3_days
               name: Days
-            - type: perform-action
+            - type: call-service
               name: Delete schedule
               icon: mdi:trash-can-outline
               action_name: Delete
-              perform_action: intex_sx2100.clear_schedule_slot
+              service: intex_sx2100.clear_schedule_slot
               data:
                 slot: 3
               confirmation:
@@ -171,11 +171,11 @@ cards:
               name: Hours
             - entity: text.intex_pool_slot_4_days
               name: Days
-            - type: perform-action
+            - type: call-service
               name: Delete schedule
               icon: mdi:trash-can-outline
               action_name: Delete
-              perform_action: intex_sx2100.clear_schedule_slot
+              service: intex_sx2100.clear_schedule_slot
               data:
                 slot: 4
               confirmation:
@@ -203,11 +203,11 @@ cards:
               name: Hours
             - entity: text.intex_pool_slot_5_days
               name: Days
-            - type: perform-action
+            - type: call-service
               name: Delete schedule
               icon: mdi:trash-can-outline
               action_name: Delete
-              perform_action: intex_sx2100.clear_schedule_slot
+              service: intex_sx2100.clear_schedule_slot
               data:
                 slot: 5
               confirmation:
@@ -235,11 +235,11 @@ cards:
               name: Hours
             - entity: text.intex_pool_slot_6_days
               name: Days
-            - type: perform-action
+            - type: call-service
               name: Delete schedule
               icon: mdi:trash-can-outline
               action_name: Delete
-              perform_action: intex_sx2100.clear_schedule_slot
+              service: intex_sx2100.clear_schedule_slot
               data:
                 slot: 6
               confirmation:
@@ -267,11 +267,11 @@ cards:
               name: Hours
             - entity: text.intex_pool_slot_7_days
               name: Days
-            - type: perform-action
+            - type: call-service
               name: Delete schedule
               icon: mdi:trash-can-outline
               action_name: Delete
-              perform_action: intex_sx2100.clear_schedule_slot
+              service: intex_sx2100.clear_schedule_slot
               data:
                 slot: 7
               confirmation:
