@@ -76,9 +76,7 @@ cards:
             - entity: text.intex_pool_slot_1_days
               name: Days
             - type: call-service
-              name: Delete schedule
-              icon: mdi:trash-can-outline
-              action_name: Delete
+              action_name: Delete schedule
               service: intex_sx2100.clear_schedule_slot
               data:
                 slot: 1
@@ -108,9 +106,7 @@ cards:
             - entity: text.intex_pool_slot_2_days
               name: Days
             - type: call-service
-              name: Delete schedule
-              icon: mdi:trash-can-outline
-              action_name: Delete
+              action_name: Delete schedule
               service: intex_sx2100.clear_schedule_slot
               data:
                 slot: 2
@@ -140,9 +136,7 @@ cards:
             - entity: text.intex_pool_slot_3_days
               name: Days
             - type: call-service
-              name: Delete schedule
-              icon: mdi:trash-can-outline
-              action_name: Delete
+              action_name: Delete schedule
               service: intex_sx2100.clear_schedule_slot
               data:
                 slot: 3
@@ -172,9 +166,7 @@ cards:
             - entity: text.intex_pool_slot_4_days
               name: Days
             - type: call-service
-              name: Delete schedule
-              icon: mdi:trash-can-outline
-              action_name: Delete
+              action_name: Delete schedule
               service: intex_sx2100.clear_schedule_slot
               data:
                 slot: 4
@@ -204,9 +196,7 @@ cards:
             - entity: text.intex_pool_slot_5_days
               name: Days
             - type: call-service
-              name: Delete schedule
-              icon: mdi:trash-can-outline
-              action_name: Delete
+              action_name: Delete schedule
               service: intex_sx2100.clear_schedule_slot
               data:
                 slot: 5
@@ -236,9 +226,7 @@ cards:
             - entity: text.intex_pool_slot_6_days
               name: Days
             - type: call-service
-              name: Delete schedule
-              icon: mdi:trash-can-outline
-              action_name: Delete
+              action_name: Delete schedule
               service: intex_sx2100.clear_schedule_slot
               data:
                 slot: 6
@@ -268,9 +256,7 @@ cards:
             - entity: text.intex_pool_slot_7_days
               name: Days
             - type: call-service
-              name: Delete schedule
-              icon: mdi:trash-can-outline
-              action_name: Delete
+              action_name: Delete schedule
               service: intex_sx2100.clear_schedule_slot
               data:
                 slot: 7
