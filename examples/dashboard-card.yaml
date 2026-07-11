@@ -75,16 +75,14 @@ cards:
               name: Hours
             - entity: text.intex_pool_slot_1_days
               name: Days
-        - type: button
-          name: Delete schedule
-          show_icon: false
-          tap_action:
-            action: perform-action
-            perform_action: intex_sx2100.clear_schedule_slot
-            confirmation:
-              text: Delete schedule 1?
-            data:
-              slot: 1
+            - type: call-service
+              name: " "
+              action_name: Delete schedule
+              service: intex_sx2100.clear_schedule_slot
+              data:
+                slot: 1
+              confirmation:
+                text: Delete schedule 1?
   - type: conditional
     conditions:
       - condition: numeric_state
@@ -108,16 +106,14 @@ cards:
               name: Hours
             - entity: text.intex_pool_slot_2_days
               name: Days
-        - type: button
-          name: Delete schedule
-          show_icon: false
-          tap_action:
-            action: perform-action
-            perform_action: intex_sx2100.clear_schedule_slot
-            confirmation:
-              text: Delete schedule 2?
-            data:
-              slot: 2
+            - type: call-service
+              name: " "
+              action_name: Delete schedule
+              service: intex_sx2100.clear_schedule_slot
+              data:
+                slot: 2
+              confirmation:
+                text: Delete schedule 2?
   - type: conditional
     conditions:
       - condition: numeric_state
@@ -141,16 +137,14 @@ cards:
               name: Hours
             - entity: text.intex_pool_slot_3_days
               name: Days
-        - type: button
-          name: Delete schedule
-          show_icon: false
-          tap_action:
-            action: perform-action
-            perform_action: intex_sx2100.clear_schedule_slot
-            confirmation:
-              text: Delete schedule 3?
-            data:
-              slot: 3
+            - type: call-service
+              name: " "
+              action_name: Delete schedule
+              service: intex_sx2100.clear_schedule_slot
+              data:
+                slot: 3
+              confirmation:
+                text: Delete schedule 3?
   - type: conditional
     conditions:
       - condition: numeric_state
@@ -174,16 +168,14 @@ cards:
               name: Hours
             - entity: text.intex_pool_slot_4_days
               name: Days
-        - type: button
-          name: Delete schedule
-          show_icon: false
-          tap_action:
-            action: perform-action
-            perform_action: intex_sx2100.clear_schedule_slot
-            confirmation:
-              text: Delete schedule 4?
-            data:
-              slot: 4
+            - type: call-service
+              name: " "
+              action_name: Delete schedule
+              service: intex_sx2100.clear_schedule_slot
+              data:
+                slot: 4
+              confirmation:
+                text: Delete schedule 4?
   - type: conditional
     conditions:
       - condition: numeric_state
@@ -207,16 +199,14 @@ cards:
               name: Hours
             - entity: text.intex_pool_slot_5_days
               name: Days
-        - type: button
-          name: Delete schedule
-          show_icon: false
-          tap_action:
-            action: perform-action
-            perform_action: intex_sx2100.clear_schedule_slot
-            confirmation:
-              text: Delete schedule 5?
-            data:
-              slot: 5
+            - type: call-service
+              name: " "
+              action_name: Delete schedule
+              service: intex_sx2100.clear_schedule_slot
+              data:
+                slot: 5
+              confirmation:
+                text: Delete schedule 5?
   - type: conditional
     conditions:
       - condition: numeric_state
@@ -240,16 +230,14 @@ cards:
               name: Hours
             - entity: text.intex_pool_slot_6_days
               name: Days
-        - type: button
-          name: Delete schedule
-          show_icon: false
-          tap_action:
-            action: perform-action
-            perform_action: intex_sx2100.clear_schedule_slot
-            confirmation:
-              text: Delete schedule 6?
-            data:
-              slot: 6
+            - type: call-service
+              name: " "
+              action_name: Delete schedule
+              service: intex_sx2100.clear_schedule_slot
+              data:
+                slot: 6
+              confirmation:
+                text: Delete schedule 6?
   - type: conditional
     conditions:
       - condition: numeric_state
@@ -273,13 +261,11 @@ cards:
               name: Hours
             - entity: text.intex_pool_slot_7_days
               name: Days
-        - type: button
-          name: Delete schedule
-          show_icon: false
-          tap_action:
-            action: perform-action
-            perform_action: intex_sx2100.clear_schedule_slot
-            confirmation:
-              text: Delete schedule 7?
-            data:
-              slot: 7
+            - type: call-service
+              name: " "
+              action_name: Delete schedule
+              service: intex_sx2100.clear_schedule_slot
+              data:
+                slot: 7
+              confirmation:
+                text: Delete schedule 7?
