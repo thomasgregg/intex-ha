@@ -1,4 +1,6 @@
 {
+  "filename": "intex_sx2100.zip",
   "name": "Intex SX2100 Pool Pump",
-  "render_readme": true
+  "render_readme": true,
+  "zip_release": true
 }
