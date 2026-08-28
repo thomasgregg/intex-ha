@@ -15,7 +15,12 @@ from homeassistant.core import HomeAssistant
 from . import IntexConfigEntry
 from .const import CONF_CLOUD_CLIENT_ID, CONF_CLOUD_CLIENT_SECRET, CONF_DEVICE_ID, CONF_LOCAL_KEY
 
-TO_REDACT = {CONF_LOCAL_KEY, CONF_CLOUD_CLIENT_ID, CONF_CLOUD_CLIENT_SECRET}
+TO_REDACT = {
+    CONF_DEVICE_ID,
+    CONF_LOCAL_KEY,
+    CONF_CLOUD_CLIENT_ID,
+    CONF_CLOUD_CLIENT_SECRET,
+}
 
 
 async def async_get_config_entry_diagnostics(
