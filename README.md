@@ -304,14 +304,28 @@ the real pump's blob byte-identically.
 
 </details>
 
+## Comparison with `Hovborg/intex-pool`
+
+Both integrations can control a Tuya sand-filter pump locally, but they have
+different goals. Neither is a drop-in superset of the other:
+
+| | This integration (`intex-ha`) | [`Hovborg/intex-pool`](https://github.com/Hovborg/intex-pool) |
+|---|---|---|
+| **Equipment scope** | One pump: Intex SX2100 / AGP Sand Filter Pump R1 | A broader pool system: water-quality sensors, saltwater systems, Tuya pumps, and pumps exposed as an HA switch |
+| **Pump setup** | Enter the SX2100 IP, device ID, and local key; cloud credentials are optional | Cloud auto-discovery or manual setup; can also link an existing HA switch as the pump |
+| **SX2100 support** | Purpose-built and live-verified against its protocol 3.5 datapoints | General Tuya sand-filter-pump support within a multi-device integration |
+| **Local operation** | Switching, status, runtime, alarms, and maintenance sensors work without the cloud | Local control for supported Tuya pumps and saltwater systems; some other equipment is cloud-based |
+| **Pump schedules** | All seven SX2100 slots, with enable, start time, duration, repeat days, and deletion | Tuya timer schedules with a schedule sensor and per-slot controls |
+| **FP mode** | Dedicated one-time filtration run of up to 48 hours using the SX2100's `FP_mode` | No SX2100-specific FP-mode workflow is documented |
+| **Error decoding** | Decodes the SX2100 DP 114 bitmap and DP 127 warning state into named entities | Provides device-specific alarm and error handling across its supported pool equipment |
+| **Dashboard** | Standard HA entities plus an optional example dashboard card | Includes its own adaptive custom dashboard card |
+| **Best fit** | You have an SX2100 and want its pump-specific behavior exposed directly | You want one integration and dashboard spanning several types of pool equipment |
+
 ## Credits
 
-The 7×8-byte schedule blob format follows the reverse-engineering
-documented in [Hovborg/intex-pool](https://github.com/Hovborg/intex-pool)
-(MIT). That project supports a broader collection of pool equipment and
-generic pumps; this integration is an independent, pump-only implementation
-purpose-built for the SX2100, including its specific datapoints, FP mode,
-seven-slot schedule management, and error bitmap decoder.
+The 7×8-byte schedule blob format follows the reverse-engineering documented
+in `Hovborg/intex-pool` (MIT). This integration is an independent
+implementation.
 
 ## License
 
