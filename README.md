@@ -308,7 +308,10 @@ the real pump's blob byte-identically.
 
 The 7×8-byte schedule blob format follows the reverse-engineering
 documented in [Hovborg/intex-pool](https://github.com/Hovborg/intex-pool)
-(MIT). This integration is an independent, pump-only implementation.
+(MIT). That project supports a broader collection of pool equipment and
+generic pumps; this integration is an independent, pump-only implementation
+purpose-built for the SX2100, including its specific datapoints, FP mode,
+seven-slot schedule management, and error bitmap decoder.
 
 ## License
 
