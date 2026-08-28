@@ -10,6 +10,23 @@ filter pump** (Tuya `AGP SAND FILTER PUMP R1`, category `rs`, product
 `ff6aa9iqer5r7wtg`). Purpose-built for this pump, with every datapoint
 verified against real hardware.
 
+## Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Configuration](#configuration)
+  - [Getting the device ID and local key](#getting-the-device-id-and-local-key)
+- [Entities](#entities)
+- [Schedules](#schedules)
+  - [FP mode](#fp-mode)
+  - [Services](#services)
+- [Automations](#automations)
+- [Dashboard card](#dashboard-card)
+- [Protocol reference](#protocol-reference)
+- [Comparison with `Hovborg/intex-pool`](#comparison-with-hovborgintex-pool)
+- [Credits](#credits)
+- [License](#license)
+
 ## Features
 
 - **Local control** over your LAN via [tinytuya](https://github.com/jasonacox/tinytuya)
