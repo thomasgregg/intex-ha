@@ -306,20 +306,28 @@ the real pump's blob byte-identically.
 
 ## Comparison with `Hovborg/intex-pool`
 
-Both integrations can control a Tuya sand-filter pump locally, but they have
-different goals. Neither is a drop-in superset of the other:
+This comparison was checked against
+[`Hovborg/intex-pool` v0.21.2](https://github.com/Hovborg/intex-pool/tree/v0.21.2).
+That integration is the stronger choice for a mixed Intex setup; this one goes
+deeper on the SX2100 itself. If the pump is your target, the differences are
+more than scope or presentation:
 
-| | This integration (`intex-ha`) | [`Hovborg/intex-pool`](https://github.com/Hovborg/intex-pool) |
+| Area | This integration (`intex-ha`) | `Hovborg/intex-pool` v0.21.2 |
 |---|---|---|
-| **Equipment scope** | One pump: Intex SX2100 / AGP Sand Filter Pump R1 | A broader pool system: water-quality sensors, saltwater systems, Tuya pumps, and pumps exposed as an HA switch |
-| **Pump setup** | Enter the SX2100 IP, device ID, and local key; cloud credentials are optional | Cloud auto-discovery or manual setup; can also link an existing HA switch as the pump |
-| **SX2100 support** | Purpose-built and live-verified against its protocol 3.5 datapoints | General Tuya sand-filter-pump support within a multi-device integration |
-| **Local operation** | Switching, status, runtime, alarms, and maintenance sensors work without the cloud | Local control for supported Tuya pumps and saltwater systems; some other equipment is cloud-based |
-| **Pump schedules** | All seven SX2100 slots, with enable, start time, duration, repeat days, and deletion | Tuya timer schedules with a schedule sensor and per-slot controls |
-| **FP mode** | Dedicated one-time filtration run of up to 48 hours using the SX2100's `FP_mode` | No SX2100-specific FP-mode workflow is documented |
-| **Error decoding** | Decodes the SX2100 DP 114 bitmap and DP 127 warning state into named entities | Provides device-specific alarm and error handling across its supported pool equipment |
-| **Dashboard** | Standard HA entities plus an optional example dashboard card | Includes its own adaptive custom dashboard card |
-| **Best fit** | You have an SX2100 and want its pump-specific behavior exposed directly | You want one integration and dashboard spanning several types of pool equipment |
+| **Design target** | Dedicated to the SX2100 / AGP Sand Filter Pump R1, with a small pump-only entity and dependency surface | A multi-device hub for water analyzers, saltwater systems, Tuya pumps, and pumps represented by another HA switch |
+| **Minimum Home Assistant** | **2024.12.0** | **2025.8.0** |
+| **Start FP** | **First-class workflow:** choose 1–48 hours with the **Start FP hours** entity, then press **Start FP**. It creates the dated one-time run used by the Intex app without disturbing the other six slots | No dedicated pump FP button or duration control; existing one-time slots are exposed through the generic schedule entities |
+| **Schedule enable vs delete** | Mirrors the pump's two distinct operations: each slot switch changes only its `control` enable byte, while **Clear schedule slot** deliberately erases the record | The pump-slot switch represents record presence; turning it off clears all eight slot bytes and relies on HA's remembered state to restore them later |
+| **Repeat days** | A writable entity for every slot accepts `daily`, `once`, or friendly input such as `mon,wed,fri`; the verified SX2100 week-bit mapping is hidden from the user | No per-slot weekday entity for the pump; its start-time and duration entities do not expose repeat-day editing |
+| **Pump schedule services** | Dedicated `set_schedule_slot` and `clear_schedule_slot` services target the pump directly, use human-facing slot numbers 1–7, and preserve unspecified fields | `get_schedule` can return the pump table, but the writable `set_schedule` service selects the saltwater-system schedule; pump edits are primarily entity-driven |
+| **FP/enable interpretation** | Treats `control` as the independent enable toggle and identifies FP from the dated one-time pattern (`days == 0`), matching observed SX2100 blobs | Its shared schedule summary maps `control == 0` to `boost`; there is no dedicated SX2100 FP interpretation or action |
+| **DP 114 errors** | **True bitmap decoder:** reports every set error bit, maps the thing-model labels to app codes, and keeps E93 standby out of the fault list | Applies a single integer error-code lookup to DP 114, so SX2100 bitmap values and simultaneous bits are not decoded individually |
+| **Actionable fault state** | A ready-to-automate **Problem** binary sensor combines the pump's DP 127 alarm with genuine DP 114 faults and includes descriptions plus all active codes | Exposes separate pump alarm/error sensors; its broader Action required roll-up does not include a pump-only installation |
+| **On-demand refresh** | One **Refresh** button immediately re-polls both the local pump and its cloud schedule | Pump data refreshes on its polling intervals; its refresh/re-test buttons belong to the water analyzer and saltwater system |
+| **Schedule cloud usage** | Schedule polling is user-configurable from 60 seconds to 24 hours (default 15 minutes), useful for conserving the Tuya developer quota | Pump schedule polling is fixed at 10 minutes |
+| **Frontend footprint** | Backend-only: standard HA entities and an optional YAML dashboard example, with no custom frontend or HTTP dependency | Includes an adaptive custom dashboard card served by the integration; this is an advantage when a bundled multi-device UI is preferred |
+| **Where the broader project wins** | Focus and pump-specific behavior are intentional; it does not manage other pool equipment | Cloud discovery, protocol auto-detection, reauthentication, a bundled card, and support for several equipment types in one integration |
+| **Best fit** | **You want the most faithful SX2100 controls, FP workflow, schedule semantics, and fault decoding** | You want one integration and dashboard spanning a larger pool system |
 
 ## Credits
 
