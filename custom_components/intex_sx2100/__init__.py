@@ -15,6 +15,7 @@ from homeassistant.const import CONF_HOST, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.typing import ConfigType
 
 from .const import (
     CONF_CLOUD_CLIENT_ID,
@@ -73,6 +74,12 @@ CLEAR_SLOT_SCHEMA = vol.Schema(
 )
 
 
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Register actions independently of config entry connectivity."""
+    _register_services(hass)
+    return True
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: IntexConfigEntry) -> bool:
     """Set up the pump from a config entry."""
     pump = LocalPump(
@@ -118,7 +125,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: IntexConfigEntry) -> boo
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
-    _register_services(hass)
     return True
 
 
@@ -134,7 +140,13 @@ async def _async_update_listener(hass: HomeAssistant, entry: IntexConfigEntry) -
 
 def _schedule_coordinator(hass: HomeAssistant) -> ScheduleCoordinator:
     """Find the schedule coordinator or explain why there is none."""
-    for entry in hass.config_entries.async_loaded_entries(DOMAIN):
+    entries = hass.config_entries.async_loaded_entries(DOMAIN)
+    if not entries:
+        raise HomeAssistantError(
+            "Intex pump unavailable: no integration entry is loaded. "
+            "Check the pump connection and integration setup status, then try again."
+        )
+    for entry in entries:
         data: IntexRuntimeData = entry.runtime_data
         if data.schedules is not None:
             return data.schedules
