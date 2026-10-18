@@ -327,13 +327,13 @@ the real pump's blob byte-identically.
 
 ## Comparison with `Hovborg/intex-pool`
 
-This comparison was checked against
-[`Hovborg/intex-pool` v0.21.2](https://github.com/Hovborg/intex-pool/tree/v0.21.2).
+This comparison was checked on 18 October 2026 against
+[`Hovborg/intex-pool` v0.21.3](https://github.com/Hovborg/intex-pool/tree/v0.21.3).
 That integration is the stronger choice for a mixed Intex setup; this one goes
 deeper on the SX2100 itself. If the pump is your target, the differences are
 more than scope or presentation:
 
-| Area | This integration (`intex-ha`) | `Hovborg/intex-pool` v0.21.2 |
+| Area | This integration (`intex-ha`) | `Hovborg/intex-pool` v0.21.3 |
 |---|---|---|
 | **Design target** | Dedicated to the SX2100 / AGP Sand Filter Pump R1, with a small pump-only entity and dependency surface | A multi-device hub for water analyzers, saltwater systems, Tuya pumps, and pumps represented by another HA switch |
 | **Minimum Home Assistant** | **2024.12.0** | **2025.8.0** |
@@ -347,8 +347,8 @@ more than scope or presentation:
 | **On-demand refresh** | One **Refresh** button immediately re-polls both the local pump and its cloud schedule | Pump data refreshes on its polling intervals; its refresh/re-test buttons belong to the water analyzer and saltwater system |
 | **Schedule cloud usage** | Schedule polling is user-configurable from 60 seconds to 24 hours (default 15 minutes), useful for conserving the Tuya developer quota | Pump schedule polling is fixed at 10 minutes |
 | **Frontend footprint** | Backend-only: standard HA entities and an optional YAML dashboard example, with no custom frontend or HTTP dependency | Includes an adaptive custom dashboard card served by the integration; this is an advantage when a bundled multi-device UI is preferred |
-| **Where the broader project wins** | Focus and pump-specific behavior are intentional; it does not manage other pool equipment | Cloud discovery, protocol auto-detection, reauthentication, a bundled card, and support for several equipment types in one integration |
-| **Best fit** | **You want the most faithful SX2100 controls, FP workflow, schedule semantics, and fault decoding** | You want one integration and dashboard spanning a larger pool system |
+| **Where the broader project wins** | Focus and pump-specific behavior are intentional; it does not manage other pool equipment | Cloud discovery, protocol auto-detection, reauthentication, a bundled card, support for several equipment types, and linked-pump automation that follows chlorine production with a one-hour after-run |
+| **Best fit** | **You want more extensive SX2100-specific controls, including the FP workflow, schedule editing, and fault decoding** | You want one integration and dashboard spanning a larger pool system |
 
 ## Credits
 
