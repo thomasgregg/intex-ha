@@ -2,7 +2,7 @@
 
 [![GitHub Release](https://img.shields.io/github/v/release/thomasgregg/intex-ha)](https://github.com/thomasgregg/intex-ha/releases)
 [![Validate](https://github.com/thomasgregg/intex-ha/actions/workflows/validate.yml/badge.svg)](https://github.com/thomasgregg/intex-ha/actions/workflows/validate.yml)
-[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz)
+[![HACS Default](https://img.shields.io/badge/HACS-Default-41BDF5.svg)](https://github.com/hacs/default)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Local-first Home Assistant integration for the **Intex SX2100 WiFi sand
@@ -45,9 +45,13 @@ verified against real hardware.
 
 **HACS** (recommended)
 
-1. HACS → three-dot menu → *Custom repositories*
-2. Add `https://github.com/thomasgregg/intex-ha` (type *Integration*)
-3. Install **Intex SX2100 Pool Pump** and restart Home Assistant
+[![Open Intex SX2100 Pool Pump in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=thomasgregg&repository=intex-ha&category=integration)
+
+1. Open **HACS** in Home Assistant.
+2. Search for **Intex SX2100 Pool Pump** and download it.
+3. Restart Home Assistant.
+
+Intex SX2100 Pool Pump is included in the HACS default repository list; no custom repository setup is needed. Existing installations continue to receive updates through HACS without reinstalling.
 
 **Manual**
 
