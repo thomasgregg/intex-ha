@@ -76,6 +76,20 @@ credentials unlock them; switching and sensors are pure LAN either way.
 Polling intervals are adjustable via the integration's *Configure* dialog
 (defaults: local 15 s, cloud 15 min — well within Tuya's free API tier).
 
+If the pump is unplugged or off Wi-Fi during startup, the initial local check
+has a five-second wait budget. Home Assistant then retries setup in the
+background. Once the pump is reachable, local controls load while the first
+Tuya Cloud schedule read runs in the background. Configured schedule entities
+show as unavailable until a cloud read succeeds. Cloud failures, including
+rejected cloud credentials, do not stop local controls from working. With
+polling enabled, the integration checks the cloud again at the configured
+interval. The **Refresh** button can also request a new check.
+
+If the pump loses its connection after setup, the local pump entities become
+unavailable. With polling enabled, checks continue at the configured local
+interval after each attempt finishes. The entities recover automatically on the
+next successful read, including after a Tuya handshake error.
+
 ### Getting the device ID and local key
 
 The pump talks on the LAN using a per-device **local key**. Tuya doesn't

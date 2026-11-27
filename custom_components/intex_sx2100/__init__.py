@@ -5,7 +5,6 @@ support for the pump's internal timer program (skdl_filter).
 """
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
 
 import voluptuous as vol
@@ -33,9 +32,7 @@ from .const import (
     SERVICE_SET_SCHEDULE_SLOT,
 )
 from .coordinator import PumpCoordinator, ScheduleCoordinator
-from .tuya import CloudClient, LocalPump, TuyaError
-
-_LOGGER = logging.getLogger(__name__)
+from .tuya import CloudClient, LocalPump
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
@@ -97,36 +94,32 @@ async def async_setup_entry(hass: HomeAssistant, entry: IntexConfigEntry) -> boo
     )
     await pump_coordinator.async_config_entry_first_refresh()
 
-    # Cloud schedules are optional: local control must never depend on them.
+    # Create the schedule coordinator without contacting the cloud. Platforms
+    # can register its entities before the first schedule read succeeds.
     schedules: ScheduleCoordinator | None = None
     client_id = entry.data.get(CONF_CLOUD_CLIENT_ID)
     client_secret = entry.data.get(CONF_CLOUD_CLIENT_SECRET)
     if client_id and client_secret:
-        try:
-            cloud = await hass.async_add_executor_job(
-                CloudClient,
+        schedules = ScheduleCoordinator(
+            hass,
+            entry,
+            CloudClient(
                 entry.data.get(CONF_CLOUD_REGION, DEFAULT_CLOUD_REGION),
                 client_id,
                 client_secret,
-            )
-        except TuyaError as err:
-            _LOGGER.warning(
-                "Tuya cloud unavailable, schedule entities disabled: %s", err
-            )
-        else:
-            schedules = ScheduleCoordinator(
-                hass,
-                entry,
-                cloud,
-                entry.data[CONF_DEVICE_ID],
-                entry.options.get(OPT_CLOUD_INTERVAL, DEFAULT_CLOUD_INTERVAL),
-            )
-            await schedules.async_config_entry_first_refresh()
+            ),
+            entry.data[CONF_DEVICE_ID],
+            entry.options.get(OPT_CLOUD_INTERVAL, DEFAULT_CLOUD_INTERVAL),
+        )
 
     entry.runtime_data = IntexRuntimeData(pump=pump_coordinator, schedules=schedules)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
+    if schedules is not None:
+        entry.async_create_background_task(
+            hass, schedules.async_initial_refresh(), "Intex Tuya Cloud first refresh"
+        )
     return True
 
 

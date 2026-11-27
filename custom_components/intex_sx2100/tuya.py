@@ -37,16 +37,19 @@ class LocalPump:
         self._host = host
         self._local_key = local_key
 
-    def _device(self) -> Any:
+    def _device(self, *, startup: bool = False) -> Any:
         dev = tinytuya.Device(self._device_id, self._host, self._local_key)
         dev.set_version(PROTOCOL_VERSION)
         dev.set_socketPersistent(False)
-        dev.set_socketTimeout(5)
+        dev.set_socketTimeout(3 if startup else 5)
+        if startup:
+            dev.set_socketRetryLimit(1)
+            dev.set_socketRetryDelay(0)
         return dev
 
-    def status(self) -> dict[str, Any]:
+    def status(self, *, startup: bool = False) -> dict[str, Any]:
         """Return the DP dict, e.g. {"104": False, "125": "working", ...}."""
-        data = self._device().status()
+        data = self._device(startup=startup).status()
         if isinstance(data, dict) and isinstance(data.get("dps"), dict):
             return data["dps"]
         self._raise("status", data)
@@ -73,49 +76,65 @@ class CloudClient:
     """Tuya developer-cloud access for the cloud-only schedule property."""
 
     def __init__(self, region: str, client_id: str, client_secret: str) -> None:
-        # Constructing tinytuya.Cloud performs a blocking token fetch — always
-        # build this inside an executor job.
-        self._cloud = tinytuya.Cloud(
-            apiRegion=region, apiKey=client_id, apiSecret=client_secret
-        )
+        self._region = region
+        self._client_id = client_id
+        self._client_secret = client_secret
+        self._cloud: Any = None
+
+    def connect(self) -> None:
+        """Fetch a token if needed. Called from the executor."""
+        if getattr(self._cloud, "token", None):
+            return
+        try:
+            cloud = tinytuya.Cloud(
+                apiRegion=self._region, apiKey=self._client_id, apiSecret=self._client_secret
+            )
+        except OSError as err:
+            raise TuyaError("Tuya Cloud token request failed") from err
         # tinytuya.Cloud does not raise on bad credentials; token stays None.
-        if getattr(self._cloud, "token", None) is None:
-            err = getattr(self._cloud, "error", None)
+        if not getattr(cloud, "token", None):
+            err = getattr(cloud, "error", None)
             raise TuyaAuthError(f"cloud auth failed: {str(err)[:160]}")
+        self._cloud = cloud
+
+    def _request(self, path: str, what: str, **kwargs: Any) -> dict[str, Any]:
+        self.connect()
+        try:
+            response = self._cloud.cloudrequest(path, **kwargs)
+            self._check(response, what)
+        except TuyaAuthError:
+            self._cloud = None
+            raise
+        except OSError as err:
+            raise TuyaError(f"{what} failed: Tuya Cloud connection error") from err
+        return response
 
     def get_property(self, device_id: str, code: str) -> Any:
         """Read one thing-model shadow property (e.g. skdl_filter)."""
-        resp = self._cloud.cloudrequest(
-            f"/v2.0/cloud/thing/{device_id}/shadow/properties"
-        )
-        self._check(resp, "read properties")
-        props = (resp.get("result") or {}).get("properties", []) or []
-        for prop in props:
+        for prop in self.get_all_properties(device_id) or []:
             if prop.get("code") == code:
                 return prop.get("value")
         return None
 
     def get_model(self, device_id: str) -> Any:
         """Return the device's Tuya thing model (official DP names/types/enums)."""
-        resp = self._cloud.cloudrequest(f"/v2.0/cloud/thing/{device_id}/model")
-        self._check(resp, "read thing model")
+        resp = self._request(f"/v2.0/cloud/thing/{device_id}/model", "read thing model")
         return resp.get("result")
 
     def get_all_properties(self, device_id: str) -> Any:
         """Return all shadow properties (raw, for diagnostics)."""
-        resp = self._cloud.cloudrequest(
-            f"/v2.0/cloud/thing/{device_id}/shadow/properties"
+        resp = self._request(
+            f"/v2.0/cloud/thing/{device_id}/shadow/properties", "read properties"
         )
-        self._check(resp, "read properties")
         return (resp.get("result") or {}).get("properties")
 
     def set_property(self, device_id: str, code: str, value: Any) -> None:
         """Write one shadow property via the property-issue API."""
-        resp = self._cloud.cloudrequest(
+        self._request(
             f"/v2.0/cloud/thing/{device_id}/shadow/properties/issue",
+            f"write {code}",
             post={"properties": json.dumps({code: value})},
         )
-        self._check(resp, f"write {code}")
 
     @staticmethod
     def _check(resp: Any, what: str) -> None:

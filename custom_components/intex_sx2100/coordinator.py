@@ -3,20 +3,24 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Callable
 from datetime import timedelta
+from functools import partial
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
 from . import schedule
 from .const import DP_PUMP, SCHEDULE_CODE
-from .tuya import CloudClient, LocalPump, TuyaAuthError, TuyaError
+from .tuya import CloudClient, LocalPump, TuyaError
 
 _LOGGER = logging.getLogger(__name__)
+LOCAL_STARTUP_TIMEOUT = 5
+CLOUD_REQUEST_TIMEOUT = 10
 
 
 class PumpCoordinator(DataUpdateCoordinator[dict[str, Any]]):
@@ -39,11 +43,19 @@ class PumpCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.pump = pump
 
     async def _async_update_data(self) -> dict[str, Any]:
+        startup = self.data is None
         try:
+            if startup:
+                async with asyncio.timeout(LOCAL_STARTUP_TIMEOUT):
+                    return await self.hass.async_add_executor_job(
+                        partial(self.pump.status, startup=True)
+                    )
             return await self.hass.async_add_executor_job(self.pump.status)
-        except TuyaAuthError as err:
-            raise ConfigEntryAuthFailed(str(err)) from err
+        except TimeoutError as err:
+            raise UpdateFailed("Timed out reading the pump's local status") from err
         except TuyaError as err:
+            # TinyTuya can report a dropped 3.5 handshake as a key error.
+            # Keep polling even after a successful connection was lost.
             raise UpdateFailed(str(err)) from err
         except Exception as err:  # noqa: BLE001 — tinytuya raises broadly
             raise UpdateFailed(f"{type(err).__name__}: {err}") from err
@@ -80,19 +92,47 @@ class ScheduleCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self.cloud = cloud
         self.device_id = device_id
+        self.last_update_success = False
+        self._cloud_io_lock = asyncio.Lock()
+        self._cloud_job: asyncio.Future[Any] | None = None
         self._write_lock = asyncio.Lock()
         # Target duration for the "Start FP" button, set by the FP hours
         # number entity (restored across restarts there).
         self.fp_hours: int = 24
 
+    async def async_initial_refresh(self) -> None:
+        """Fetch cloud schedules after local entity setup, with normal polling."""
+        await self.async_refresh()
+        if not self.last_update_success:
+            _LOGGER.warning("Tuya Cloud schedules unavailable: %s", self.last_exception)
+
+    async def async_cloud_job(self, operation: Callable[..., Any], *args: Any) -> Any:
+        """Serialize SDK calls and cap the async wait for its blocking HTTP I/O."""
+        async with self._cloud_io_lock:
+            if self._cloud_job is not None and not self._cloud_job.done():
+                raise TuyaError("A previous Tuya Cloud request is still running")
+            job = self._cloud_job = self.hass.async_add_executor_job(operation, *args)
+            # The SDK has no request timeout. Keep at most one worker active per
+            # coordinator and collect its exception even if this waiter goes away.
+            job.add_done_callback(self._consume_cloud_exception)
+            done, _ = await asyncio.wait((job,), timeout=CLOUD_REQUEST_TIMEOUT)
+            if not done:
+                raise TuyaError("Tuya Cloud request timed out and may still complete")
+            return job.result()
+
+    @staticmethod
+    def _consume_cloud_exception(job: asyncio.Future[Any]) -> None:
+        if not job.cancelled():
+            job.exception()
+
     async def _async_update_data(self) -> dict[str, Any]:
         try:
-            raw = await self.hass.async_add_executor_job(
+            raw = await self.async_cloud_job(
                 self.cloud.get_property, self.device_id, SCHEDULE_CODE
             )
-        except TuyaAuthError as err:
-            raise ConfigEntryAuthFailed(str(err)) from err
         except TuyaError as err:
+            # Rejected optional credentials must not put the local entry into
+            # reauth or stop the schedule coordinator from retrying.
             raise UpdateFailed(str(err)) from err
         except Exception as err:  # noqa: BLE001
             raise UpdateFailed(f"{type(err).__name__}: {err}") from err
@@ -106,7 +146,7 @@ class ScheduleCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         overwrite edits made there. Caller must hold the write lock.
         """
         try:
-            raw = await self.hass.async_add_executor_job(
+            raw = await self.async_cloud_job(
                 self.cloud.get_property, self.device_id, SCHEDULE_CODE
             )
         except TuyaError as err:
@@ -121,7 +161,7 @@ class ScheduleCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         state mid-propagation."""
         b64 = schedule.encode_schedules(slots)
         try:
-            await self.hass.async_add_executor_job(
+            await self.async_cloud_job(
                 self.cloud.set_property, self.device_id, SCHEDULE_CODE, b64
             )
         except TuyaError as err:

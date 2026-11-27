@@ -42,7 +42,7 @@ async def async_get_config_entry_diagnostics(
             ("thing_model", cloud.get_model),
         ):
             try:
-                result = await hass.async_add_executor_job(call, device_id)
+                result = await data.schedules.async_cloud_job(call, device_id)
             except Exception as err:  # noqa: BLE001 — diagnostics must not fail
                 diag[key] = f"unavailable: {type(err).__name__}: {err}"
                 continue

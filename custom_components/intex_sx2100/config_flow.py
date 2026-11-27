@@ -77,13 +77,13 @@ class IntexConfigFlow(ConfigFlow, domain=DOMAIN):
             if not errors and bool(client_id) != bool(client_secret):
                 errors["base"] = "cloud_incomplete"
             if not errors and client_id and client_secret:
+                cloud = CloudClient(
+                    user_input.get(CONF_CLOUD_REGION, DEFAULT_CLOUD_REGION),
+                    client_id,
+                    client_secret,
+                )
                 try:
-                    await self.hass.async_add_executor_job(
-                        CloudClient,
-                        user_input.get(CONF_CLOUD_REGION, DEFAULT_CLOUD_REGION),
-                        client_id,
-                        client_secret,
-                    )
+                    await self.hass.async_add_executor_job(cloud.connect)
                 except TuyaAuthError:
                     errors["base"] = "cloud_invalid_auth"
                 except TuyaError:

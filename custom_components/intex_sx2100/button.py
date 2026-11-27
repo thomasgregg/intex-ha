@@ -1,6 +1,8 @@
 """Buttons: Start FP (one-time long run) and Refresh (force re-poll)."""
 from __future__ import annotations
 
+import asyncio
+
 from homeassistant.components.button import ButtonEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
@@ -47,9 +49,10 @@ class RefreshButton(ButtonEntity):
         self._attr_device_info = device_info(device_id)
 
     async def async_press(self) -> None:
-        await self._pump.async_refresh()
-        if self._schedules is not None:
-            await self._schedules.async_refresh()
+        if self._schedules is None:
+            await self._pump.async_refresh()
+            return
+        await asyncio.gather(self._pump.async_refresh(), self._schedules.async_refresh())
 
 
 class StartFpButton(CoordinatorEntity[ScheduleCoordinator], ButtonEntity):
